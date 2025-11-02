@@ -1,0 +1,68 @@
+{
+  "name": "@kimzuni/yamllint",
+  "description": "A linter for YAML files — an unofficial native Node.js port of Python yamllint.",
+  "version": "0.0.0",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "author": {
+    "name": "kimzuni",
+    "email": "me@zuni.kim",
+    "url": "https://github.com/kimzuni"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kimzuni-labs/yamllint.git"
+  },
+  "homepage": "https://github.com/kimzuni-labs/yamllint",
+  "bugs": "https://github.com/kimzuni-labs/yamllint/issues",
+  "scripts": {
+    "test": "NODE_ENV=test tsx --test",
+    "test:all": "NODE_ENV=test tsx --test tests/*.test.ts",
+    "lint": "markdownlint-cli2 && eslint .",
+    "lint:eslint": "eslint .",
+    "lint:markdown": "markdownlint-cli2",
+    "build": "tsdown",
+    "local:test:matrix": "# bun test && nvm use v20 && npm run test:all && nvm use v22 && npm run test && nvm use v24 && npm run test && bun lint"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "lint",
+    "yaml",
+    "linter",
+    "yamllint",
+    "port"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "20.1.0",
+    "@commitlint/config-conventional": "20.0.0",
+    "@commitlint/types": "20.0.0",
+    "@eslint/js": "9.39.1",
+    "@stylistic/eslint-plugin": "5.5.0",
+    "@types/bun": "1.3.1",
+    "eslint": "9.39.1",
+    "husky": "9.1.7",
+    "jiti": "2.6.1",
+    "markdownlint-cli2": "0.18.1",
+    "standard-version": "9.5.0",
+    "tsdown": "0.15.12",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

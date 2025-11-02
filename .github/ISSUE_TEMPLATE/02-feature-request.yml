@@ -1,0 +1,27 @@
+---
+name: 🚀 Feature Request
+description: Suggest an idea, feature, or enhancement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+        Make sure you are running the latest version.
+        The bug you are experiencing may already have been fixed.
+
+        Please try to include as much information as possible.
+  - type: textarea
+    attributes:
+      label: What is the problem this feature would solve?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What is the feature you are proposing to solve the problem?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What alternatives have you considered?
