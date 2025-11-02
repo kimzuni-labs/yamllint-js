@@ -1,0 +1,8 @@
+---
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Ask a Question (Q&A)
+    url: https://github.com/kimzuni-labs/yamllint/discussions/categories/q-a
+    about: |
+      Have a question or need help?
+      Please open a thread in the Q&A section instead of creating an issue.

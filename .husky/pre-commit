@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if which bun > /dev/null; then
+	bun test
+else
+	npm run test:all
+fi
