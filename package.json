@@ -45,6 +45,9 @@
       "require": "./dist/index.cjs"
     }
   },
+  "dependencies": {
+    "iconv-lite": "0.7.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "20.1.0",
     "@commitlint/config-conventional": "20.0.0",
