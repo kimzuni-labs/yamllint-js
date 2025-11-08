@@ -15,7 +15,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import type yaml from "yaml";
+
 import { B } from "./utils";
+
+
+
+export const YAML_OPTIONS: yaml.ParseOptions & yaml.DocumentOptions = {
+	version: "1.1",
+};
+
+
+
+export type Level = typeof LEVELS[number];
+export type Alias = keyof typeof ALIASES;
+export const LEVELS = [null, "warning", "error"] as const;
+export const ALIASES = {
+	off: null,
+	warn: "warning",
+	err: "error",
+} as const;
+export const PROBLEM_LEVELS = {
+	warning: 1,
+	error: 2,
+};
 
 
 
