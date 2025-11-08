@@ -46,7 +46,8 @@
     }
   },
   "dependencies": {
-    "iconv-lite": "0.7.0"
+    "iconv-lite": "0.7.0",
+    "yaml": "2.8.1"
   },
   "devDependencies": {
     "@commitlint/cli": "20.1.0",
