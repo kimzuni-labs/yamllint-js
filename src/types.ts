@@ -17,8 +17,19 @@
 
 import type yaml from "yaml";
 
+import type { Level, Alias } from "./constants";
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { Token } from "./parser";
+
+
+
+export {
+	Level,
+	Alias,
+};
+
+export type AllLevel = Level | Alias;
 
 
 
