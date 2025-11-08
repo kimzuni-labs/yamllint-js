@@ -15,6 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import type yaml from "yaml";
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { Token } from "./parser";
+
 
 
 /**
@@ -28,3 +33,33 @@ export type G<T, TReturn = undefined, TNext = unknown> = Generator<T, TReturn, T
  * Use this to avoid `void` return inference issues.
  */
 export type AG<T, TReturn = undefined, TNext = unknown> = AsyncGenerator<T, TReturn, TNext>;
+
+
+
+export interface Mark {
+	line: number;
+	column: number;
+	pointer: number;
+}
+
+export interface ScalarAdditionalData {
+	isKey?: boolean;
+	isValue?: boolean;
+}
+
+export interface AdditionalData extends ScalarAdditionalData {
+	buffer: string;
+	startMark: Mark;
+	endMark: Mark;
+}
+
+/**
+ * {@link Token.ignoreTypes | Some types} are not included in this.
+ */
+export type TokenData = yaml.CST.Token;
+
+export type ParentTokenData = Exclude<
+	yaml.CST.Token,
+	| yaml.CST.SourceToken
+	| yaml.CST.ErrorToken
+>;
