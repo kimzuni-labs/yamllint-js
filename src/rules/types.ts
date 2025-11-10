@@ -15,11 +15,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import type yaml from "yaml";
 import type z from "zod";
 import type { Ignore } from "ignore";
 
-import type { G, Level } from "../types";
+import type { G, Level, ExtractToken } from "../types";
+import type { YamlLintConfig } from "../config";
+import type { Line, Token, Comment } from "../parser";
 import type { LintProblem } from "../linter";
+
+
+
+export interface CommonCheckProps<Conf> {
+	fullConf: YamlLintConfig;
+	conf: Conf;
+}
+
+export interface LineCheckProps<Conf = unknown> extends CommonCheckProps<Conf> {
+	line: Line;
+}
+
+export interface TokenCheckProps<Conf = unknown, Context = unknown> extends CommonCheckProps<Conf> {
+	token: ExtractToken<Exclude<yaml.CST.Token["type"], typeof Token.ignoreTypes[number]>>;
+	context: Context;
+}
+
+export interface CommentCheckProps<Conf = unknown> extends CommonCheckProps<Conf> {
+	comment: Comment;
+}
 
 
 
@@ -30,19 +53,19 @@ export interface BaseRule {
 	VALIDATE?: (conf: Record<string, unknown>) => string;
 }
 
-export interface LineRule extends BaseRule {
+export interface LineRule<Conf = unknown> extends BaseRule {
 	TYPE: "line";
-	check: () => G<LintProblem>;
+	check: (props: LineCheckProps<Conf>) => G<LintProblem>;
 }
 
-export interface TokenRule extends BaseRule {
+export interface TokenRule<Conf = unknown, Context = unknown> extends BaseRule {
 	TYPE: "token";
-	check: () => G<LintProblem>;
+	check: (props: TokenCheckProps<Conf, Context>) => G<LintProblem>;
 }
 
-export interface CommentRule extends BaseRule {
+export interface CommentRule<Conf = unknown> extends BaseRule {
 	TYPE: "comment";
-	check: () => G<LintProblem>;
+	check: (props: CommentCheckProps<Conf>) => G<LintProblem>;
 }
 
 export type Rule = LineRule | TokenRule | CommentRule;

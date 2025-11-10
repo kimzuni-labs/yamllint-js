@@ -20,41 +20,65 @@
 
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
+import { Readable } from "node:stream";
 import util from "node:util";
+import iconv from "iconv-lite";
 
+import { YamlLintConfig } from "../src/config";
 import * as linter from "../src/linter";
 
 
 
+type Problems = ReturnType<typeof linter.run>;
+
+const ArrayFromAsync = async (problems: Problems) => {
+	const arr = [];
+	for await (const p of problems) arr.push(p);
+	return arr;
+};
+
+const isRejects = async (problems: Problems) => {
+	await assert.rejects(() => ArrayFromAsync(problems));
+};
+
 describe("Linter Test Case", () => {
-	const fakeConfig = () => ({});
+	const fakeConfig = () => YamlLintConfig.init({ content: "extends: default" });
 
-	test("run on string", () => {
-		assert.ok(fakeConfig());
+	test("run on string", async () => {
+		await ArrayFromAsync(linter.run("test: document", await fakeConfig()));
 	});
 
-	test("run on bytes", () => {
-		assert.ok(true);
+	test("run on buffer", async () => {
+		await ArrayFromAsync(linter.run(Buffer.from("test: document"), await fakeConfig()));
 	});
 
-	test("run on unicode", () => {
-		assert.ok(true);
+	test("run on unicode", async () => {
+		await ArrayFromAsync(linter.run("test: document", await fakeConfig()));
 	});
 
-	test("run on stream", () => {
-		assert.ok(true);
+	test("run on stream", async () => {
+		await ArrayFromAsync(linter.run(Readable.from("hello"), await fakeConfig()));
 	});
 
-	test("run on int", () => {
-		assert.ok(true);
+	test("run on int", async () => {
+		await isRejects(linter.run(42 as unknown as string, await fakeConfig()));
 	});
 
-	test("run on list", () => {
-		assert.ok(true);
+	test("run on list", async () => {
+		await isRejects(linter.run("hello".split("") as unknown as string, await fakeConfig()));
 	});
 
-	test("run on non ascii chars", () => {
-		assert.ok(true);
+	test("run on non ascii chars", async () => {
+		let s: string;
+
+		s = "- hétérogénéité\n# 19.99 €\n";
+		await ArrayFromAsync(linter.run(s, await fakeConfig()));
+		await ArrayFromAsync(linter.run(iconv.encode(s, "utf-8"), await fakeConfig()));
+		await ArrayFromAsync(linter.run(iconv.encode(s, "iso-8859-15"), await fakeConfig()));
+
+		s = "- お早う御座います。\n# الأَبْجَدِيَّة العَرَبِيَّة\n";
+		await ArrayFromAsync(linter.run(s, await fakeConfig()));
+		await ArrayFromAsync(linter.run(iconv.encode(s, "utf-8"), await fakeConfig()));
 	});
 
 	test("linter problem repr without rule", () => {

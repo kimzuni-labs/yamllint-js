@@ -18,12 +18,11 @@
 import type yaml from "yaml";
 
 import type { Level, Alias } from "./constants";
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { Token } from "./parser";
 import type { RuleValue } from "./rules/types";
 
 export type {
+	CommonCheckProps, LineCheckProps, TokenCheckProps, CommentCheckProps,
 	BaseRule, LineRule, TokenRule, CommentRule, Rule,
 	RuleObjectBaseValue, RuleObjectValue, RuleValue,
 } from "./rules/types";
@@ -36,6 +35,8 @@ export {
 };
 
 export type AllLevel = Level | Alias;
+
+export type ExtractToken<T extends yaml.CST.Token["type"]> = Token & { data: { type: T } };
 
 
 
