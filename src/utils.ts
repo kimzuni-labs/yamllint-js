@@ -56,3 +56,7 @@ export function bufferStartsWith(buf: Buffer, prefix: Buffer, position = 0) {
 	const subarray = buf.subarray(start, end);
 	return Buffer.compare(subarray, prefix) === 0;
 }
+
+
+
+export const formatErrorMessage = (prefix: string, e: unknown) => `${prefix}${e instanceof Error ? e.message : String(e)}`;
