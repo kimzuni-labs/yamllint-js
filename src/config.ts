@@ -1,0 +1,355 @@
+/*
+ * Copyright (C) 2016 Adrien Vergé
+ * Copyright (C) 2025 kimzuni
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+import assert from "node:assert";
+import fs from "node:fs/promises";
+import path from "node:path";
+import yaml from "yaml";
+import z from "zod";
+import ignore, { type Ignore } from "ignore";
+
+import type { RuleValue, UserConfig, Rule, Level, Alias } from "./types";
+import { LEVELS, ALIASES, YAML_OPTIONS } from "./constants";
+import { splitlines, formatErrorMessage } from "./utils";
+import * as yamllintRules from "./rules";
+import * as decoder from "./decoder";
+
+
+
+const ig = () => ignore({ allowRelativePaths: true });
+
+
+
+export class YamlLintConfigError extends Error {}
+
+export type YamlLintConfigProps = {
+	content: string;
+	file?: never;
+} | {
+	content?: never;
+	file: string;
+};
+
+export class YamlLintConfig {
+	#props: YamlLintConfigProps;
+
+	#ignore?: Ignore;
+	#yamlFiles = ig().add(["*.yaml", "*.yml", ".yamllint"]);
+	locale?: string;
+	#rules: Record<string, undefined | RuleValue> = {};
+	get rules() {
+		return this.#rules as Exclude<UserConfig["rules"], undefined>;
+	}
+
+	static async init(props: YamlLintConfigProps) {
+		const conf = new YamlLintConfig(props);
+		await conf.#init();
+		await conf.#parse();
+		await conf.#validate();
+		return conf;
+	}
+
+	constructor(props: YamlLintConfigProps) {
+		assert(Number(props.content === undefined) ^ Number(props.file === undefined));
+		this.#props = props;
+	}
+
+	isFileIgnored(filepath: string) {
+		return !!this.#ignore?.ignores(filepath);
+	}
+
+	isYamlFile(filepath: string) {
+		return this.#yamlFiles.ignores(path.basename(filepath));
+	}
+
+	enabledRules(filepath?: string) {
+		const rules: Rule[] = [];
+		for (const id in this.rules) {
+			const val = this.rules[id];
+			if (
+				val
+				&& (
+					filepath === undefined
+					|| !val.ignore?.ignores(filepath)
+				)
+			) {
+				rules.push(yamllintRules.get(id));
+			}
+		}
+		return rules;
+	}
+
+	extend(baseConfig: unknown) {
+		assert(baseConfig instanceof YamlLintConfig);
+
+		for (const rule in this.#rules) {
+			if (
+				typeof this.#rules[rule] === "object"
+				&& rule in baseConfig.#rules
+				&& baseConfig.#rules[rule] !== false
+			) {
+				baseConfig.#rules[rule] = Object.assign(baseConfig.#rules[rule] as object, this.#rules[rule]);
+			} else {
+				baseConfig.#rules[rule] = this.#rules[rule];
+			}
+		}
+
+		this.#rules = baseConfig.#rules;
+		if (baseConfig.#ignore) {
+			this.#ignore = baseConfig.#ignore;
+		}
+	}
+
+	async #init() {
+		this.#props.content ??= decoder.autoDecode(await fs.readFile(this.#props.file));
+	}
+
+	async #parse() {
+		assert(this.#props.content !== undefined);
+		let parsed: unknown;
+		try {
+			parsed = yaml.parse(this.#props.content, YAML_OPTIONS);
+		} catch (e) {
+			throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
+		}
+
+		if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
+			throw new YamlLintConfigError("invalid config: not a mapping");
+		}
+
+		const conf = parsed as Record<string, unknown>;
+		if (
+			conf.rules !== undefined
+			&& (typeof conf.rules !== "object" || conf.rules === null)
+		) {
+			throw new YamlLintConfigError("invalid config: rules should be a mapping");
+		}
+		const userRules = (conf.rules ?? {}) as Record<string, unknown>;
+
+		for (const key in userRules) {
+			const value = userRules[key];
+			if (value === "disable") {
+				this.#rules[key] = false;
+			} else {
+				this.#rules[key] = (value === "enable" ? {} : value) as RuleValue;
+			}
+		}
+
+		// Does this conf override another conf that we need to load?
+		if (conf.extends && typeof conf.extends === "string") {
+			const file = await getExtendedConfigFile(conf.extends);
+			const base = await YamlLintConfig.init({ file });
+			try {
+				this.extend(base);
+			} catch (e) {
+				throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
+			}
+		}
+
+		const ignore = await parseIgnoreData(conf);
+		if (ignore) this.#ignore = ignore;
+
+		if (conf["yaml-files"]) {
+			this.#yamlFiles = ig().add(toStringArray(
+				conf["yaml-files"],
+				"invalid config: yaml-files should be a list of file patterns",
+			));
+		}
+
+		if (conf.locale) {
+			if (typeof conf.locale !== "string") {
+				throw new YamlLintConfigError("invalid config: locale should be a string");
+			}
+			this.locale = conf.locale.split(".")[0].replaceAll("_", "-");
+		}
+	}
+
+	async #validate() {
+		for (const id in this.#rules) {
+			let rule: Rule;
+			try {
+				rule = yamllintRules.get(id);
+			} catch (e) {
+				throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
+			}
+			this.#rules[id] = await validateRuleConf(rule, this.#rules[id]);
+		}
+	}
+}
+
+
+
+export async function validateRuleConf(
+	rule: ReturnType<typeof yamllintRules.get>,
+	config: unknown,
+): Promise<RuleValue> {
+	// disable
+	if (config === false) return false;
+
+	if (!config || typeof config !== "object") {
+		throw new YamlLintConfigError(`invalid config: rule "${rule.ID}": should be either "enable", "disable" or a mapping`);
+	}
+	const conf = config as Record<string, unknown>;
+
+	conf.level = validateLevel(conf.level);
+	if (conf.level === undefined) {
+		throw new YamlLintConfigError("invalid config: level should be \"error\" or \"warning\"");
+	} else if (conf.level === null) {
+		// disable
+		return false;
+	}
+
+	const ignore = await parseIgnoreData(conf);
+	if (ignore) conf.ignore = ignore;
+
+	const options = rule.CONF;
+	const optionsDefault = rule.DEFAULT ?? {};
+
+	try {
+		options
+			?.extend({
+				level: z.any(),
+				ignore: z.any(),
+				"ignore-from-file": z.any(),
+			})
+			.strict()
+			.partial()
+			.parse(conf);
+	} catch (e) {
+		if (e instanceof z.ZodError) {
+			const issue = e.issues[0];
+
+			if (issue.code === "unrecognized_keys") {
+				throw new YamlLintConfigError(`invalid config: unknown option "${issue.keys[0]}" for rule "${rule.ID}"`);
+			}
+
+			const optkey = issue.path[0];
+			const message = zodIssueDetect(issue).join("");
+			throw new YamlLintConfigError(`invalid config: option "${optkey.toString()}" of "${rule.ID}" ${message}`);
+		}
+		throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
+	}
+
+	const keys = options?.keyof().options ?? [];
+	for (const optkey of keys) {
+		if (!(optkey in conf)) {
+			conf[optkey] = optionsDefault[optkey];
+		}
+	}
+
+	if (rule.VALIDATE) {
+		const res = rule.VALIDATE(conf);
+		if (res) throw new YamlLintConfigError(`invalid config: ${rule.ID}: ${res}`);
+	}
+
+	return conf as unknown as RuleValue;
+}
+
+
+
+export async function getExtendedConfigFile(name: string) {
+	// Is it a standard conf shipped with yamllint...
+	if (!name.includes("/")) {
+		const stdConf = path.join(import.meta.dirname, "conf", `${name}.yaml`);
+		if (await fs.stat(stdConf).then(x => x.isFile()).catch(() => false)) {
+			return stdConf;
+		}
+	}
+
+	// or a custom conf on filesystem?
+	return name;
+}
+
+
+
+export function validateLevel(value: unknown): Level | undefined {
+	if (value === undefined) {
+		return "error";
+	} else if (typeof value === "number") {
+		return LEVELS[value];
+	} else if (value === null || typeof value === "string") {
+		if (LEVELS.includes(value as Level)) return value as Level;
+		if (value && value in ALIASES) return ALIASES[value as Alias];
+	}
+}
+
+
+
+async function parseIgnoreData(data: Record<string, unknown>) {
+	if (data.ignore !== undefined && data["ignore-from-file"] !== undefined) {
+		throw new YamlLintConfigError("invalid config: ignore and ignore-from-file keys cannot be used together");
+	} else if (data["ignore-from-file"] !== undefined) {
+		const paths = toStringArray(
+			data["ignore-from-file"],
+			"invalid config: ignore-from-file should contain filename(s), either as a list or string",
+		);
+		const gen = decoder.linesInFiles(paths);
+		const lines = [];
+		for await (const line of gen) lines.push(line);
+		return ig().add(lines);
+	} else if (data.ignore) {
+		return ig().add(toStringArray(
+			data.ignore,
+			"invalid config: ignore should contain file patterns",
+		));
+	}
+}
+
+
+
+function toStringArray(value: unknown, message: string) {
+	if (typeof value === "string") {
+		return splitlines(value.trim());
+	} else if (Array.isArray(value) && value.every(x => typeof x === "string")) {
+		return value;
+	} else {
+		throw new YamlLintConfigError(message);
+	}
+}
+
+
+
+function zodIssueDetect(issue: z.core.$ZodIssue): string[] {
+	/*
+	 * Example: CONF = {option: (bool, 'mixed')}
+	 *          → {option: true}         → {option: mixed}
+	 */
+	if (issue.code === "invalid_union") {
+		const message = issue.errors.map(x => x.map(x => zodIssueDetect(x)[1])).flat();
+		return ["should be in (", message.join(", "), ")"];
+	}
+
+	/*
+	 * Example: CONF = {option: ['flag1', 'flag2', int]}
+	 *          → {option: [flag1]}      → {option: [42, flag1, flag2]}
+	 */
+	if (issue.code === "invalid_value") {
+		const values = JSON.stringify(issue.values).replaceAll(",", ", ").slice(1, -1);
+		return ["should only contain values in [", values, "]"];
+	}
+
+	/*
+	 * Example: CONF = {option: int}
+	 *          → {option: 42}
+	 */
+	if (issue.code === "invalid_type") {
+		return ["should be ", issue.expected];
+	}
+
+	return ["unknown error"];
+}

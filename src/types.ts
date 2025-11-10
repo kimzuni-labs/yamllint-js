@@ -21,6 +21,12 @@ import type { Level, Alias } from "./constants";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { Token } from "./parser";
+import type { RuleValue } from "./rules/types";
+
+export type {
+	BaseRule, LineRule, TokenRule, CommentRule, Rule,
+	RuleObjectBaseValue, RuleObjectValue, RuleValue,
+} from "./rules/types";
 
 
 
@@ -74,3 +80,14 @@ export type ParentTokenData = Exclude<
 	| yaml.CST.SourceToken
 	| yaml.CST.ErrorToken
 >;
+
+
+
+export interface UserConfig {
+	extends?: string;
+	ignore?: string | string[];
+	"ignore-from-file"?: string | string[];
+	"yaml-files"?: string | string[];
+	locale?: string;
+	rules?: Partial<Record<string, RuleValue<Record<string, unknown>>>>;
+}
