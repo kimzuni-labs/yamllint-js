@@ -9,7 +9,7 @@ rules:
   # anchors: enable
   braces: enable
   # brackets: enable
-  # colons: enable
+  colons: enable
   # commas: enable
   # comments:
   #   level: warning
