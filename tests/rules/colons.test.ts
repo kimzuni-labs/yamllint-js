@@ -455,8 +455,7 @@ describe("Colons Test Case", () => {
 		test("do not confound with trailing space", async () => {
 			const check = await conf(
 				"colons: {max-spaces-before: 1, max-spaces-after: 1}",
-
-				// "trailing-spaces: disable",
+				"trailing-spaces: disable",
 			);
 
 			await check([
