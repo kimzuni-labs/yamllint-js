@@ -20,12 +20,14 @@ import type { Rule } from "../types";
 
 import * as braces from "./braces";
 import * as colons from "./colons";
+import * as trailingSpaces from "./trailing_spaces";
 
 
 
 export const _RULES = ([
 	braces,
 	colons,
+	trailingSpaces,
 ] as Rule[]).reduce<Partial<Record<string, Rule>>>((acc, rule) => ({ ...acc, [rule.ID]: rule }), {});
 
 
