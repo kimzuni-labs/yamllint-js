@@ -96,8 +96,7 @@ describe("Trailing Spaces Test Case", () => {
 			]);
 		});
 
-		// required rule: new lines
-		test.skip("with dos new lines", async () => {
+		test("with dos new lines", async () => {
 			const check = await conf("trailing-spaces: enable", "new-lines: {type: dos}");
 
 			await check([
