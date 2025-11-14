@@ -18,8 +18,8 @@ rules:
   # document-start: disable
   empty-lines:
     level: warning
-  # hyphens:
-  #   level: warning
+  hyphens:
+    level: warning
   # indentation:
   #   level: warning
   #   indent-sequences: consistent
