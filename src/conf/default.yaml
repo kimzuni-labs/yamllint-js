@@ -21,7 +21,7 @@ rules:
   empty-lines: enable
   # empty-values: disable
   # float-values: disable
-  # hyphens: enable
+  hyphens: enable
   # indentation: enable
   # key-duplicates: enable
   # key-ordering: disable
