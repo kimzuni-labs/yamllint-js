@@ -23,7 +23,7 @@ rules:
   # float-values: disable
   hyphens: enable
   # indentation: enable
-  # key-duplicates: enable
+  key-duplicates: enable
   # key-ordering: disable
   # line-length: enable
   # new-line-at-end-of-file: enable

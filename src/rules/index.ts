@@ -22,6 +22,7 @@ import * as braces from "./braces";
 import * as colons from "./colons";
 import * as emptyLines from "./empty_lines";
 import * as hyphens from "./hyphens";
+import * as keyDuplicates from "./key_duplicates";
 import * as newLines from "./new_lines";
 import * as trailingSpaces from "./trailing_spaces";
 
@@ -32,6 +33,7 @@ export const _RULES = ([
 	colons,
 	emptyLines,
 	hyphens,
+	keyDuplicates,
 	newLines,
 	trailingSpaces,
 ] as Rule[]).reduce<Partial<Record<string, Rule>>>((acc, rule) => ({ ...acc, [rule.ID]: rule }), {});

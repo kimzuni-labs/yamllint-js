@@ -23,6 +23,7 @@ import { B } from "./utils";
 
 export const YAML_OPTIONS: yaml.ParseOptions & yaml.DocumentOptions = {
 	version: "1.1",
+	uniqueKeys: false,
 };
 
 
