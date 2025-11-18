@@ -20,6 +20,7 @@ import type { Rule } from "../types";
 
 import * as anchors from "./anchors";
 import * as braces from "./braces";
+import * as brackets from "./brackets";
 import * as colons from "./colons";
 import * as emptyLines from "./empty_lines";
 import * as hyphens from "./hyphens";
@@ -32,6 +33,7 @@ import * as trailingSpaces from "./trailing_spaces";
 export const _RULES = ([
 	anchors,
 	braces,
+	brackets,
 	colons,
 	emptyLines,
 	hyphens,
