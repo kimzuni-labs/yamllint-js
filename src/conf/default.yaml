@@ -8,7 +8,7 @@ yaml-files:
 rules:
   anchors: enable
   braces: enable
-  # brackets: enable
+  brackets: enable
   colons: enable
   # commas: enable
   # comments:
