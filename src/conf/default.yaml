@@ -10,7 +10,7 @@ rules:
   braces: enable
   brackets: enable
   colons: enable
-  # commas: enable
+  commas: enable
   # comments:
   #   level: warning
   # comments-indentation:
