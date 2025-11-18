@@ -11,8 +11,8 @@ rules:
     max-spaces-inside: 1
   colons:
     level: warning
-  # commas:
-  #   level: warning
+  commas:
+    level: warning
   # comments: disable
   # comments-indentation: disable
   # document-start: disable
