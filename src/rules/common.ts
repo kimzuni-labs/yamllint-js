@@ -108,3 +108,17 @@ export function spacesBefore(
 		}
 	}
 }
+
+
+
+/**
+ * Finds the indent of the line the pointer in.
+ */
+export function getLineIndent(buffer: string, pointer: number) {
+	const start = buffer.lastIndexOf("\n", pointer) + 1;
+	let content = start;
+	while (buffer[content] === " ") {
+		content++;
+	}
+	return content - start;
+}
