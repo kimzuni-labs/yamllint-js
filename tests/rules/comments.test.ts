@@ -30,8 +30,7 @@ describe("Comments Test Case", () => {
 	test("disabled", async () => {
 		const check = await conf(
 			"comments: disable",
-
-			// "comments-indentation: disable",
+			"comments-indentation: disable",
 		);
 
 		await check([
@@ -62,8 +61,7 @@ describe("Comments Test Case", () => {
 			"comments:",
 			"  require-starting-space: true",
 			"  min-spaces-from-content: -1",
-
-			// "comments-indentation: disable",
+			"comments-indentation: disable",
 		);
 
 		await check([
@@ -118,9 +116,8 @@ describe("Comments Test Case", () => {
 				"comments:",
 				"  require-starting-space: true",
 				"  ignore-shebangs: false",
+				"comments-indentation: disable",
 
-				// eslint-disable-next-line @stylistic/multiline-comment-style
-				// "comments-indentation: disable",
 				// "document-start: disable",
 			);
 
@@ -171,9 +168,8 @@ describe("Comments Test Case", () => {
 				"comments:",
 				"  require-starting-space: true",
 				"  ignore-shebangs: true",
+				"comments-indentation: disable",
 
-				// eslint-disable-next-line @stylistic/multiline-comment-style
-				// "comments-indentation: disable",
 				// "document-start: disable",
 			);
 
@@ -259,8 +255,7 @@ describe("Comments Test Case", () => {
 			"comments:",
 			"  require-starting-space: true",
 			"  min-spaces-from-content: 2",
-
-			// "comments-indentation: disable",
+			"comments-indentation: disable",
 		);
 
 		await check([

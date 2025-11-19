@@ -14,7 +14,7 @@ rules:
   commas:
     level: warning
   comments: disable
-  # comments-indentation: disable
+  comments-indentation: disable
   # document-start: disable
   empty-lines:
     level: warning
