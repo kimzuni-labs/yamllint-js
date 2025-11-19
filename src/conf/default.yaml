@@ -11,8 +11,8 @@ rules:
   brackets: enable
   colons: enable
   commas: enable
-  # comments:
-  #   level: warning
+  comments:
+    level: warning
   # comments-indentation:
   #   level: warning
   # document-end: disable

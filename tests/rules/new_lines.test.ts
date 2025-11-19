@@ -109,8 +109,7 @@ describe("New Lines Test Case", () => {
 			]);
 		});
 
-		// required rule: comments
-		test.skip("required st sp", async () => {
+		test("required st sp", async () => {
 			/*
 			 * If we find a CRLF when looking for Unix newlines, yamllint
 			 * should always raise, regardless of logic with
