@@ -23,6 +23,7 @@ import * as braces from "./braces";
 import * as brackets from "./brackets";
 import * as colons from "./colons";
 import * as commas from "./commas";
+import * as comments from "./comments";
 import * as emptyLines from "./empty_lines";
 import * as hyphens from "./hyphens";
 import * as keyDuplicates from "./key_duplicates";
@@ -37,6 +38,7 @@ export const _RULES = ([
 	brackets,
 	colons,
 	commas,
+	comments,
 	emptyLines,
 	hyphens,
 	keyDuplicates,
