@@ -373,8 +373,7 @@ describe("Comments Test Case", () => {
 				"comments:",
 				"  require-starting-space: true",
 				"  min-spaces-from-content: 2",
-
-				// "new-line-at-end-of-file: disable",
+				"new-line-at-end-of-file: disable",
 			);
 
 			await check([

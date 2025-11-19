@@ -238,8 +238,7 @@ describe("Comments Indentation Test Case", () => {
 	test("no newline at end", async () => {
 		const check = await conf(
 			"comments-indentation: enable",
-
-			// "new-line-at-end-of-file: disable",
+			"new-line-at-end-of-file: disable",
 		);
 
 		await check([

@@ -28,6 +28,7 @@ import * as comments from "./comments";
 import * as emptyLines from "./empty_lines";
 import * as hyphens from "./hyphens";
 import * as keyDuplicates from "./key_duplicates";
+import * as newLineAtEndOfFile from "./new_line_at_end_of_file";
 import * as newLines from "./new_lines";
 import * as trailingSpaces from "./trailing_spaces";
 
@@ -44,6 +45,7 @@ export const _RULES = ([
 	emptyLines,
 	hyphens,
 	keyDuplicates,
+	newLineAtEndOfFile,
 	newLines,
 	trailingSpaces,
 ] as Rule[]).reduce<Partial<Record<string, Rule>>>((acc, rule) => ({ ...acc, [rule.ID]: rule }), {});
