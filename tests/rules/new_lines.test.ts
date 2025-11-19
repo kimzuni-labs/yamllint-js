@@ -29,7 +29,7 @@ describe("New Lines Test Case", () => {
 	const conf = ruleTestCase("new-lines");
 
 	const addRules: string[] = [
-		// "new-line-at-end-of-file: disable",
+		"new-line-at-end-of-file: disable",
 	];
 
 	test("disabled", async () => {

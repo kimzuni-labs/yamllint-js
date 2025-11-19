@@ -30,8 +30,8 @@ describe("Empty Lines Test Case", () => {
 	test("disabled", async () => {
 		const check = await conf(
 			"empty-lines: disable",
-			// eslint-disable-next-line @stylistic/multiline-comment-style
-			// "new-line-at-end-of-file: disable",
+			"new-line-at-end-of-file: disable",
+
 			// "document-start: disable",
 		);
 
@@ -47,8 +47,8 @@ describe("Empty Lines Test Case", () => {
 	test("empty document", async () => {
 		const check = await conf(
 			"empty-lines: {max: 0, max-start: 0, max-end: 0}",
-			// eslint-disable-next-line @stylistic/multiline-comment-style
-			// "new-line-at-end-of-file: disable",
+			"new-line-at-end-of-file: disable",
+
 			// "document-start: disable",
 		);
 
@@ -62,8 +62,7 @@ describe("Empty Lines Test Case", () => {
 
 			check = await conf(
 				"empty-lines: {max: 0, max-start: 0, max-end: 0}",
-
-				// "new-line-at-end-of-file: disable",
+				"new-line-at-end-of-file: disable",
 			);
 
 			await check(["---\n"]);
