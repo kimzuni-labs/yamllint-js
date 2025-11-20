@@ -33,6 +33,7 @@ import * as floatValues from "./float_values";
 import * as hyphens from "./hyphens";
 import * as keyDuplicates from "./key_duplicates";
 import * as keyOrdering from "./key_ordering";
+import * as lineLength from "./line_length";
 import * as newLineAtEndOfFile from "./new_line_at_end_of_file";
 import * as newLines from "./new_lines";
 import * as trailingSpaces from "./trailing_spaces";
@@ -55,6 +56,7 @@ export const _RULES = ([
 	hyphens,
 	keyDuplicates,
 	keyOrdering,
+	lineLength,
 	newLineAtEndOfFile,
 	newLines,
 	trailingSpaces,
