@@ -15,7 +15,7 @@ rules:
     level: warning
   comments-indentation:
     level: warning
-  # document-end: disable
+  document-end: disable
   document-start:
     level: warning
   empty-lines: enable
