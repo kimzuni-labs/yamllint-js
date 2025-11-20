@@ -19,7 +19,7 @@ rules:
   document-start:
     level: warning
   empty-lines: enable
-  # empty-values: disable
+  empty-values: disable
   # float-values: disable
   hyphens: enable
   # indentation: enable
