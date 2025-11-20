@@ -16,8 +16,8 @@ rules:
   comments-indentation:
     level: warning
   # document-end: disable
-  # document-start:
-  #   level: warning
+  document-start:
+    level: warning
   empty-lines: enable
   # empty-values: disable
   # float-values: disable

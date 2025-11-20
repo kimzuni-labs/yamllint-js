@@ -117,8 +117,7 @@ describe("Comments Test Case", () => {
 				"  require-starting-space: true",
 				"  ignore-shebangs: false",
 				"comments-indentation: disable",
-
-				// "document-start: disable",
+				"document-start: disable",
 			);
 
 			await check([
@@ -169,8 +168,7 @@ describe("Comments Test Case", () => {
 				"  require-starting-space: true",
 				"  ignore-shebangs: true",
 				"comments-indentation: disable",
-
-				// "document-start: disable",
+				"document-start: disable",
 			);
 
 			await check([
