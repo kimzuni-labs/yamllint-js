@@ -28,6 +28,7 @@ import * as comments from "./comments";
 import * as documentEnd from "./document_end";
 import * as documentStart from "./document_start";
 import * as emptyLines from "./empty_lines";
+import * as emptyValues from "./empty_values";
 import * as hyphens from "./hyphens";
 import * as keyDuplicates from "./key_duplicates";
 import * as newLineAtEndOfFile from "./new_line_at_end_of_file";
@@ -47,6 +48,7 @@ export const _RULES = ([
 	documentEnd,
 	documentStart,
 	emptyLines,
+	emptyValues,
 	hyphens,
 	keyDuplicates,
 	newLineAtEndOfFile,
