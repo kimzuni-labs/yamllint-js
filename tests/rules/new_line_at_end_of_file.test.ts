@@ -31,8 +31,7 @@ describe("New Line at End of File Test Case", () => {
 		const check = await conf(
 			"new-line-at-end-of-file: disable",
 			"empty-lines: disable",
-
-			// "document-start: disable",
+			"document-start: disable",
 		);
 
 		await check([""]);
@@ -45,8 +44,7 @@ describe("New Line at End of File Test Case", () => {
 		const check = await conf(
 			"new-line-at-end-of-file: enable",
 			"empty-lines: disable",
-
-			// "document-start: disable",
+			"document-start: disable",
 		);
 
 		await check([""]);

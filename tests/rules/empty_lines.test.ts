@@ -31,8 +31,7 @@ describe("Empty Lines Test Case", () => {
 		const check = await conf(
 			"empty-lines: disable",
 			"new-line-at-end-of-file: disable",
-
-			// "document-start: disable",
+			"document-start: disable",
 		);
 
 		await check([""]);
@@ -48,8 +47,7 @@ describe("Empty Lines Test Case", () => {
 		const check = await conf(
 			"empty-lines: {max: 0, max-start: 0, max-end: 0}",
 			"new-line-at-end-of-file: disable",
-
-			// "document-start: disable",
+			"document-start: disable",
 		);
 
 		await check([""]);
@@ -84,8 +82,7 @@ describe("Empty Lines Test Case", () => {
 
 			check = await conf(
 				"empty-lines: {max: 2, max-start: 4, max-end: 0}",
-
-				// "document-start: disable",
+				"document-start: disable",
 			);
 
 			await check(["\n\n\n\nnon empty\n"]);
@@ -95,8 +92,7 @@ describe("Empty Lines Test Case", () => {
 
 			check = await conf(
 				"empty-lines: {max: 2, max-start: 0, max-end: 0}",
-
-				// "document-start: disable",
+				"document-start: disable",
 			);
 
 			await check(["non empty\n"]);
@@ -108,8 +104,7 @@ describe("Empty Lines Test Case", () => {
 
 			check = await conf(
 				"empty-lines: {max: 2, max-start: 0, max-end: 4}",
-
-				// "document-start: disable",
+				"document-start: disable",
 			);
 
 			await check(["non empty\n\n\n\n\n"]);
@@ -119,8 +114,7 @@ describe("Empty Lines Test Case", () => {
 
 			check = await conf(
 				"empty-lines: {max: 2, max-start: 0, max-end: 0}",
-
-				// "document-start: disable",
+				"document-start: disable",
 			);
 
 			await check(["non empty\n"]);
@@ -142,8 +136,7 @@ describe("Empty Lines Test Case", () => {
 		const check = await conf(
 			"empty-lines: {max: 2, max-start: 0, max-end: 0}",
 			"new-lines: {type: dos}",
-
-			// "document-start: disable",
+			"document-start: disable",
 		);
 
 		await check(["---\r\n"]);

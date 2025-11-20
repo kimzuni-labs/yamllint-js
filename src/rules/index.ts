@@ -25,6 +25,7 @@ import * as colons from "./colons";
 import * as commas from "./commas";
 import * as commentsIndentation from "./comments_indentation";
 import * as comments from "./comments";
+import * as documentStart from "./document_start";
 import * as emptyLines from "./empty_lines";
 import * as hyphens from "./hyphens";
 import * as keyDuplicates from "./key_duplicates";
@@ -42,6 +43,7 @@ export const _RULES = ([
 	commas,
 	commentsIndentation,
 	comments,
+	documentStart,
 	emptyLines,
 	hyphens,
 	keyDuplicates,
