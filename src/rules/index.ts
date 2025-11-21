@@ -38,6 +38,7 @@ import * as newLineAtEndOfFile from "./new_line_at_end_of_file";
 import * as newLines from "./new_lines";
 import * as octalValues from "./octal_values";
 import * as trailingSpaces from "./trailing_spaces";
+import * as truthy from "./truthy";
 
 
 
@@ -62,6 +63,7 @@ export const _RULES = ([
 	newLines,
 	octalValues,
 	trailingSpaces,
+	truthy,
 ] as Rule[]).reduce<Partial<Record<string, Rule>>>((acc, rule) => ({ ...acc, [rule.ID]: rule }), {});
 
 
