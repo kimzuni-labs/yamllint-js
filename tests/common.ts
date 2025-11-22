@@ -17,13 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import assert from "node:assert";
 import fs from "node:fs/promises";
 import os from "node:os";
+import util from "node:util";
 import path from "node:path";
 import crypto from "node:crypto";
+import yaml from "yaml";
 import iconv from "iconv-lite";
 
 import { isASCII } from "../src/utils";
+import { YamlLintConfig } from "../src/config";
+import * as linter from "../src/linter";
 
 
 
@@ -183,3 +188,39 @@ export function tempWorkspaceWithFilesInManyCodecs(pathTemplate: string, text: s
 	}
 	return workspace;
 }
+
+
+
+// Miscellaneous stuff:
+export type CheckProblem = [line: number, col: number, id?: string];
+export const ruleTestCase = (id: string) => async (...config: string[] | [Record<string, unknown>, ...string[]]) => {
+	const base = typeof config[0] === "string" ? undefined : config.shift() as Record<string, unknown>;
+	if (config.length === 0) config = ["{}"];
+	const conf = await YamlLintConfig.init({
+		content: yaml.stringify({
+			extends: "default",
+			...base,
+		}) + [
+			"rules:",
+			...(config as string[]).map(x => `  ${x}`),
+		].join("\n"),
+	});
+
+	return async (
+		source: string[],
+		problems: CheckProblem[] = [],
+	) => {
+		const expectedProblems = [];
+		for (const value of problems) {
+			const ruleId = value[2] === "syntax" ? undefined : value[2] ?? (id === "syntax" ? undefined : id);
+			expectedProblems.push(new linter.LintProblem(value[0], value[1], undefined, ruleId));
+		}
+
+		expectedProblems.sort((a, b) => (a.line !== b.line ? a.line - b.line : a.column - b.column));
+		const result = linter.run(source.join("\n"), conf);
+		for await (const x of result) {
+			assert.ok(x.eq(expectedProblems.shift()), util.inspect(x));
+		}
+		assert.ok(expectedProblems.length === 0);
+	};
+};
