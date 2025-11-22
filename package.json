@@ -17,7 +17,7 @@
   "bugs": "https://github.com/kimzuni-labs/yamllint/issues",
   "scripts": {
     "test": "NODE_ENV=test tsx --test",
-    "test:all": "NODE_ENV=test tsx --test tests/*.test.ts",
+    "test:all": "NODE_ENV=test tsx --test tests/*.test.ts tests/rules/*.test.ts",
     "lint": "markdownlint-cli2 && eslint .",
     "lint:eslint": "eslint .",
     "lint:markdown": "markdownlint-cli2",
