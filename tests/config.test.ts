@@ -27,13 +27,13 @@ import z from "zod";
 import type { Rule } from "../src/types";
 import {
 	YamlLintConfig,
-	YamlLintConfigError,
 	validateRuleConf,
 } from "../src/config";
 
 import {
 	buildTempWorkspace,
 	tempWorkspace,
+	assertConfigError,
 	type BuildTempWorkspaceReturnType,
 } from "./common";
 
@@ -49,20 +49,6 @@ const assertBasicError = async (
 		block,
 		(e) => {
 			assert.ok(e instanceof Error);
-			if (cb) cb(e);
-			return true;
-		},
-	);
-};
-
-const assertConfigError = async (
-	block: () => Promise<unknown>,
-	cb?: (e: YamlLintConfigError) => unknown,
-) => {
-	await assert.rejects(
-		block,
-		(e) => {
-			assert.ok(e instanceof YamlLintConfigError);
 			if (cb) cb(e);
 			return true;
 		},
