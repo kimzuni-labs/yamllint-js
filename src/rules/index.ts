@@ -18,9 +18,12 @@
 
 import type { Rule } from "../types";
 
+import * as braces from "./braces";
+
 
 
 export const _RULES = ([
+	braces,
 ] as Rule[]).reduce<Partial<Record<string, Rule>>>((acc, rule) => ({ ...acc, [rule.ID]: rule }), {});
 
 
