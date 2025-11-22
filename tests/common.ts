@@ -27,7 +27,7 @@ import yaml from "yaml";
 import iconv from "iconv-lite";
 
 import { isASCII } from "../src/utils";
-import { YamlLintConfig } from "../src/config";
+import { YamlLintConfig, YamlLintConfigError } from "../src/config";
 import * as linter from "../src/linter";
 
 
@@ -73,6 +73,22 @@ export function iconvEquivalentOfTestCodec(testCodec: string) {
 
 export function usesBom(codec: string) {
 	return (/(_32|_16|_sig)$/).test(codec);
+}
+
+
+
+export async function assertConfigError(
+	block: () => Promise<unknown>,
+	cb?: (e: YamlLintConfigError) => unknown,
+) {
+	await assert.rejects(
+		block,
+		(e) => {
+			assert.ok(e instanceof YamlLintConfigError);
+			if (cb) cb(e);
+			return true;
+		},
+	);
 }
 
 
