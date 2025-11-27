@@ -17,9 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* eslint-disable no-console */
+
 import assert from "node:assert";
 import fs from "node:fs/promises";
 import os from "node:os";
+import { Readable } from "node:stream";
 import util from "node:util";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -29,6 +32,7 @@ import iconv from "iconv-lite";
 import { isASCII } from "../src/utils";
 import { YamlLintConfig, YamlLintConfigError } from "../src/config";
 import * as linter from "../src/linter";
+import * as cli from "../src/cli";
 
 
 
@@ -240,3 +244,116 @@ export const ruleTestCase = (id: string) => async (...config: string[] | [Record
 		assert.ok(expectedProblems.length === 0);
 	};
 };
+
+
+
+export interface RunContextData {
+	/**
+	 * if `returncode` is `null`, `stdin` cannot be used on node.js.
+	 *
+	 * `TypeError: Cannot set property stdin of #<process> which has only a getter`
+	 */
+	returncode: number | null;
+	stdout: string;
+	stderr: string;
+}
+
+/**
+ * Context manager for ``cli.run()`` to capture exit code and streams.
+ */
+export async function runContext(...options: string[] | [{
+	chdir?: string;
+	inputData?: string | Buffer;
+	args?: string[];
+	env?: Record<string, string | undefined>;
+}]): Promise<RunContextData> {
+	const {
+		chdir,
+		inputData,
+		args = [],
+		env = {},
+	} = options.length === 0 || typeof options[0] === "string" ? { args: options as string[] } : options[0];
+
+	type Key = typeof keys[number];
+	const keys = ["log", "error"] as const;
+	const bak = {} as Record<Key, typeof console.log>;
+	const data = { log: "", error: "" } satisfies Record<Key, string>;
+	const stdin = process.stdin;
+	const processEnv = { ...process.env };
+
+	const genLogFn = (key: Key) => (...args: unknown[]) => {
+		const text = args.map(String).join(" ");
+		data[key] += text + "\n";
+	};
+
+	const override = () => {
+		for (const key in env) {
+			process.env[key] = env[key];
+		}
+
+		if (inputData !== undefined) {
+			// @ts-expect-error: ts(2322)
+			process.stdin = Readable.from(inputData);
+		}
+		for (const key of keys) {
+			bak[key] = console[key];
+			console[key] = genLogFn(key);
+		}
+	};
+
+	const restore = () => {
+		process.env = processEnv;
+		if (inputData !== undefined) {
+			process.stdin = stdin;
+		}
+		for (const key of keys) {
+			console[key] = bak[key];
+		}
+	};
+
+	let returncode: number | null;
+	if (typeof Bun === "undefined" && inputData !== undefined) {
+		console.warn("Warning: Cannot capture exit code when using stdin in Node.js runtime");
+		returncode = null;
+	} else {
+		const bak = process.cwd();
+		try {
+			override();
+			if (chdir) process.chdir(chdir);
+			returncode = await cli.run(args);
+		} finally {
+			process.chdir(bak);
+			restore();
+		}
+	}
+
+	return {
+		returncode,
+		stdout: data.log,
+		stderr: data.error,
+	};
+}
+
+export async function withTTYWorkspace(
+	fn: () => void | Promise<void>,
+) {
+	const bak = process.stdout.isTTY;
+	try {
+		process.stdout.isTTY = true;
+		await fn();
+	} finally {
+		process.stdout.isTTY = bak;
+	}
+}
+
+export async function noTTYWorkspace(
+	fn: () => void | Promise<void>,
+) {
+	const bak = process.stdout.isTTY;
+	try {
+		process.stdout.isTTY = false;
+		await fn();
+	} finally {
+		process.stdout.isTTY = bak;
+	}
+}

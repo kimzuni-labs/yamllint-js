@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import os from "node:os";
+
 import { PY_EOL, PY_EOL_END, ASCII } from "./constants";
 
 
@@ -58,5 +60,7 @@ export function bufferStartsWith(buf: Buffer, prefix: Buffer, position = 0) {
 }
 
 
+
+export const getHomedir = () => process.env.HOME ?? os.homedir();
 
 export const formatErrorMessage = (prefix: string, e: unknown) => `${prefix}${e instanceof Error ? e.message : String(e)}`;
