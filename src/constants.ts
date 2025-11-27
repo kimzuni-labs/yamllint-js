@@ -17,9 +17,21 @@
 
 import type yaml from "yaml";
 
+import pkg from "../package.json";
 import { B } from "./utils";
 
 
+
+export const APP = {
+	NAME: "yamllint",
+	VERSION: pkg.version,
+	DESCRIPTION: [
+		pkg.description,
+		"yamllint does not only check for syntax validity,",
+		"but for weirdnesses like key repetition and cosmetic problems",
+		"such as lines length, trailing spaces, indentation, etc.",
+	].join(" "),
+};
 
 export const YAML_OPTIONS: yaml.ParseOptions & yaml.DocumentOptions = {
 	version: "1.1",
