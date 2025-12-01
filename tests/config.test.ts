@@ -71,11 +71,6 @@ const assertConfigError = async (
 
 
 
-/* eslint-disable @stylistic/padded-blocks, @stylistic/indent */
-describe.skip("skip temporarily while implementing rules included", () => {
-
-
-
 describe("Simple Config Test Case", () => {
 	test("parse config", async () => {
 		const conf = await newConf(
@@ -147,7 +142,8 @@ describe("Simple Config Test Case", () => {
 		});
 	});
 
-	test("yes/no for booleans", async () => {
+	// required rule: indentation
+	test.skip("yes/no for booleans", async () => {
 		const run = async (
 			config: string[],
 			[
@@ -763,8 +759,4 @@ describe("Ignore Config Test Case", () => {
 
 
 	// ...required cli
-});
-
-
-
 });
