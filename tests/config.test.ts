@@ -25,15 +25,19 @@ import fs from "node:fs/promises";
 import z from "zod";
 
 import type { Rule } from "../src/types";
+import { splitlines } from "../src/utils";
 import {
 	YamlLintConfig,
 	validateRuleConf,
 } from "../src/config";
 
 import {
+	encode,
 	buildTempWorkspace,
 	tempWorkspace,
 	assertConfigError,
+	runContext,
+	type RunContextData,
 	type BuildTempWorkspaceReturnType,
 } from "./common";
 
@@ -685,6 +689,8 @@ describe("Ignore Config Test Case", () => {
 		"",
 	];
 
+	let dirname: BuildTempWorkspaceReturnType["dirname"];
+	let resolve: BuildTempWorkspaceReturnType["resolve"];
 	let cleanup: BuildTempWorkspaceReturnType["cleanup"] = async () => {
 		// pass
 	};
@@ -703,6 +709,8 @@ describe("Ignore Config Test Case", () => {
 			"s/s/ign-trail/s/s/file.yaml": badYaml,
 			"s/s/ign-trail/s/s/file2.lint-me-anyway.yaml": badYaml,
 		});
+		dirname = temp.dirname;
+		resolve = temp.resolve;
 		cleanup = temp.cleanup;
 	});
 
@@ -744,5 +752,349 @@ describe("Ignore Config Test Case", () => {
 
 
 
-	// ...required cli
+	const docstart = "[warning] missing document start \"---\" (document-start)";
+	const keydup = "[error] duplication of key \"key\" in mapping (key-duplicates)";
+	const trailing = "[error] trailing spaces (trailing-spaces)";
+	const hyphen = "[error] too many spaces after hyphen (hyphens)";
+	const ignoreWorkspace = async (
+		config: string[] | Record<string, string[]> | undefined,
+		args: string[],
+		cb: (data: Pick<RunContextData, "returncode"> & { out: string[] }) => void,
+	) => {
+		const files = !config ? undefined : Array.isArray(config) ? { ".yamllint": config } : config;
+		try {
+			if (files) {
+				for (const filename in files) {
+					await fs.writeFile(
+						resolve(filename),
+						files[filename].join("\n"),
+					);
+				}
+			}
+
+			const { returncode, stdout } = await runContext({
+				chdir: dirname,
+				args: ["-f", "parsable", ...args],
+			});
+			const out = splitlines(stdout).sort();
+			cb({ returncode, out });
+		} finally {
+			if (files) {
+				for (const filename in files) {
+					await fs.rm(resolve(filename));
+				}
+			}
+		}
+	};
+
+	test("no ignore", async () => {
+		await ignoreWorkspace(undefined, ["."], ({ returncode, out }) => {
+			assert.notEqual(returncode, 0);
+			assert.deepStrictEqual(out, [
+				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`bin/file.lint-me-anyway.yaml:5:5: ${hyphen}`,
+				`bin/file.yaml:3:3: ${keydup}`,
+				`bin/file.yaml:4:17: ${trailing}`,
+				`bin/file.yaml:5:5: ${hyphen}`,
+				`file-at-root.yaml:3:3: ${keydup}`,
+				`file-at-root.yaml:4:17: ${trailing}`,
+				`file-at-root.yaml:5:5: ${hyphen}`,
+				`file.dont-lint-me.yaml:3:3: ${keydup}`,
+				`file.dont-lint-me.yaml:4:17: ${trailing}`,
+				`file.dont-lint-me.yaml:5:5: ${hyphen}`,
+				`ign-dup/file.yaml:3:3: ${keydup}`,
+				`ign-dup/file.yaml:4:17: ${trailing}`,
+				`ign-dup/file.yaml:5:5: ${hyphen}`,
+				`ign-dup/sub/dir/file.yaml:3:3: ${keydup}`,
+				`ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`ign-trail/file.yaml:3:3: ${keydup}`,
+				`ign-trail/file.yaml:4:17: ${trailing}`,
+				`ign-trail/file.yaml:5:5: ${hyphen}`,
+				`include/ign-dup/sub/dir/file.yaml:3:3: ${keydup}`,
+				`include/ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`include/ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/file.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/s/s/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:5:5: ${hyphen}`,
+			]);
+		});
+	});
+
+	test("run with ignore str", async () => {
+		await ignoreWorkspace([
+			"extends: default",
+			"ignore: |",
+			"  *.dont-lint-me.yaml",
+			"  /bin/*",
+			"  !/bin/*.lint-me-anyway.yaml",
+			"rules:",
+			"  key-duplicates:",
+			"    ignore: |",
+			"      /ign-dup",
+			"  trailing-spaces:",
+			"    ignore: |",
+			"      **/ign-trail/**",
+			"      !**/ign-trail/**/",
+			"      !**/*.lint-me-anyway.yaml",
+			"",
+		], [
+			".",
+		], ({ out }) => {
+			assert.deepStrictEqual(out, [
+				`.yamllint:1:1: ${docstart}`,
+				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`bin/file.lint-me-anyway.yaml:5:5: ${hyphen}`,
+				`file-at-root.yaml:3:3: ${keydup}`,
+				`file-at-root.yaml:4:17: ${trailing}`,
+				`file-at-root.yaml:5:5: ${hyphen}`,
+				`ign-dup/file.yaml:4:17: ${trailing}`,
+				`ign-dup/file.yaml:5:5: ${hyphen}`,
+				`ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`ign-trail/file.yaml:3:3: ${keydup}`,
+				`ign-trail/file.yaml:5:5: ${hyphen}`,
+				`include/ign-dup/sub/dir/file.yaml:3:3: ${keydup}`,
+				`include/ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`include/ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:5:5: ${hyphen}`,
+			]);
+		});
+	});
+
+	test("run with ignore list", async () => {
+		await ignoreWorkspace([
+			"extends: default",
+			"ignore:",
+			"  - '*.dont-lint-me.yaml'",
+			"  - '/bin/*'",
+			"  - '!/bin/*.lint-me-anyway.yaml'",
+			"rules:",
+			"  key-duplicates:",
+			"    ignore:",
+			"      - '/ign-dup'",
+			"  trailing-spaces:",
+			"    ignore:",
+			"      - '**/ign-trail/**'",
+			"      - '!**/ign-trail/**/'",
+			"      - '!**/*.lint-me-anyway.yaml'",
+			"",
+		], [
+			".",
+		], ({ out }) => {
+			assert.deepStrictEqual(out, [
+				`.yamllint:1:1: ${docstart}`,
+				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`bin/file.lint-me-anyway.yaml:5:5: ${hyphen}`,
+				`file-at-root.yaml:3:3: ${keydup}`,
+				`file-at-root.yaml:4:17: ${trailing}`,
+				`file-at-root.yaml:5:5: ${hyphen}`,
+				`ign-dup/file.yaml:4:17: ${trailing}`,
+				`ign-dup/file.yaml:5:5: ${hyphen}`,
+				`ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`ign-trail/file.yaml:3:3: ${keydup}`,
+				`ign-trail/file.yaml:5:5: ${hyphen}`,
+				`include/ign-dup/sub/dir/file.yaml:3:3: ${keydup}`,
+				`include/ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`include/ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:5:5: ${hyphen}`,
+			]);
+		});
+	});
+
+	test("run with ignore from file", async () => {
+		await ignoreWorkspace({
+			".yamllint": [
+				"extends: default",
+				"ignore-from-file: .gitignore",
+				"rules:",
+				"  key-duplicates:",
+				"    ignore-from-file: .ignore-key-duplicates",
+				"",
+			],
+			".gitignore": [
+				"*.dont-lint-me.yaml",
+				"/bin/*",
+				"!/bin/*.lint-me-anyway.yaml",
+			],
+			".ignore-key-duplicates": [
+				"/ign-dup",
+			],
+		}, [
+			".",
+		], ({ out }) => {
+			assert.deepStrictEqual(out, [
+				`.yamllint:1:1: ${docstart}`,
+				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`bin/file.lint-me-anyway.yaml:5:5: ${hyphen}`,
+				`file-at-root.yaml:3:3: ${keydup}`,
+				`file-at-root.yaml:4:17: ${trailing}`,
+				`file-at-root.yaml:5:5: ${hyphen}`,
+				`ign-dup/file.yaml:4:17: ${trailing}`,
+				`ign-dup/file.yaml:5:5: ${hyphen}`,
+				`ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`ign-trail/file.yaml:3:3: ${keydup}`,
+				`ign-trail/file.yaml:4:17: ${trailing}`,
+				`ign-trail/file.yaml:5:5: ${hyphen}`,
+				`include/ign-dup/sub/dir/file.yaml:3:3: ${keydup}`,
+				`include/ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`include/ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/file.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/s/s/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:5:5: ${hyphen}`,
+			]);
+		});
+	});
+
+	test("run with ignored from file", async () => {
+		await ignoreWorkspace({
+			".yamllint": [
+				"extends: default",
+				"ignore-from-file: [.gitignore, .yamlignore]",
+				"",
+			],
+			".gitignore": [
+				"*.dont-lint-me.yaml",
+				"/bin/*",
+			],
+			".yamlignore": [
+				"!/bin/*.lint-me-anyway.yaml",
+			],
+		}, [
+			".",
+		], ({ out }) => {
+			assert.deepStrictEqual(out, [
+				`.yamllint:1:1: ${docstart}`,
+				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`bin/file.lint-me-anyway.yaml:5:5: ${hyphen}`,
+				`file-at-root.yaml:3:3: ${keydup}`,
+				`file-at-root.yaml:4:17: ${trailing}`,
+				`file-at-root.yaml:5:5: ${hyphen}`,
+				`ign-dup/file.yaml:3:3: ${keydup}`,
+				`ign-dup/file.yaml:4:17: ${trailing}`,
+				`ign-dup/file.yaml:5:5: ${hyphen}`,
+				`ign-dup/sub/dir/file.yaml:3:3: ${keydup}`,
+				`ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`ign-trail/file.yaml:3:3: ${keydup}`,
+				`ign-trail/file.yaml:4:17: ${trailing}`,
+				`ign-trail/file.yaml:5:5: ${hyphen}`,
+				`include/ign-dup/sub/dir/file.yaml:3:3: ${keydup}`,
+				`include/ign-dup/sub/dir/file.yaml:4:17: ${trailing}`,
+				`include/ign-dup/sub/dir/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/file.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/s/s/file.yaml:5:5: ${hyphen}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:3:3: ${keydup}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:4:17: ${trailing}`,
+				`s/s/ign-trail/s/s/file2.lint-me-anyway.yaml:5:5: ${hyphen}`,
+			]);
+		});
+	});
+
+	test("run with ignore with broken symlink", async () => {
+		await tempWorkspace({
+			"file-without-yaml-extension": "42\n",
+			"link.yaml": "symlink://file-without-yaml-extension",
+			"link-404.yaml": "symlink://file-that-does-not-exist",
+		}, async () => {
+			const { returncode, stdout } = await runContext("-f", "parsable", ".");
+			const out = splitlines(stdout).sort();
+			assert.equal(returncode, 0);
+			assert.deepStrictEqual(out, [
+				`link.yaml:1:1: ${docstart}`,
+			]);
+		});
+	});
+
+	test("run with ignore on ignored file", async () => {
+		await ignoreWorkspace([
+			"ignore: file.dont-lint-me.yaml",
+			"rules:",
+			"  trailing-spaces: enable",
+			"  key-duplicates:",
+			"    ignore: file-at-root.yaml",
+			"",
+		], [
+			"file.dont-lint-me.yaml",
+			"file-at-root.yaml",
+		], ({ out }) => {
+			assert.deepStrictEqual(out, [
+				`file-at-root.yaml:4:17: ${trailing}`,
+			]);
+		});
+	});
+
+	test("ignored from file with multiple encodings", async () => {
+		const createIgnoreFile = async (text: string, codec: string) => {
+			const filepath = resolve(`${codec}.ignore`);
+			await fs.writeFile(
+				filepath,
+				encode(text, codec),
+			);
+			return filepath;
+		};
+
+		const ignoreFiles = await Promise.all([
+			["bin/file.lint-me-anyway.yaml\n", "utf_32_be"],
+			["bin/file.yaml\n", "utf_32_be_sig"],
+			["file-at-root.yaml\n", "utf_32_le"],
+			["file.dont-lint-me.yaml\n", "utf_32_le_sig"],
+
+			["ign-dup/file.yaml\n", "utf_16_be"],
+			["ign-dup/sub/dir/file.yaml\n", "utf_16_be_sig"],
+			["ign-trail/file.yaml\n", "utf_16_le"],
+			["include/ign-dup/sub/dir/file.yaml\n", "utf_16_le_sig"],
+
+			["s/s/ign-trail/file.yaml\n", "utf_8"],
+			["s/s/ign-trail/s/s/file.yaml\ns/s/ign-trail/s/s/file2.lint-me-anyway.yaml\n.yamllint\n", "utf_8_sig"],
+		].map(([text, codec]) => createIgnoreFile(text, codec)));
+
+		const conf = [
+			"---",
+			"extends: default",
+			`ignore-from-file: [${ignoreFiles.join(", ")}]`,
+			"",
+		];
+
+		await ignoreWorkspace(undefined, [
+			"-d", conf.join("\n"), ".",
+		], ({ returncode }) => {
+			assert.equal(returncode, 0);
+		});
+	});
 });
