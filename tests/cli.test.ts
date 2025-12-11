@@ -926,8 +926,7 @@ describe("Command Line Config Test Case", () => {
 		}
 	});
 
-	// required indentation rule
-	test.skip("multiple parent config file", async () => {
+	test("multiple parent config file", async () => {
 		const workdir = "a/b/c";
 		const workspace = {
 			"a/b/c/3spaces.yml": [

@@ -132,8 +132,7 @@ describe("Simple Config Test Case", () => {
 		});
 	});
 
-	// required rule: indentation
-	test.skip("yes/no for booleans", async () => {
+	test("yes/no for booleans", async () => {
 		const run = async (
 			config: string[],
 			[
