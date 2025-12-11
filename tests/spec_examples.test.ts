@@ -76,8 +76,7 @@ const conf = {
 		],
 		"example-2.6": [
 			"braces: {min-spaces-inside: 0, max-spaces-inside: 0}",
-
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-2.12": [
 			"empty-lines: {max-end: 1}",
@@ -108,13 +107,14 @@ const conf = {
 		],
 
 		"example-5.3": [
-			// "indentation: {indent-sequences: false}",
+			"indentation: {indent-sequences: false}",
 			"colons: {max-spaces-before: 1}",
 		],
 
 		"example-6.1": [
 			"comments-indentation: disable",
 			"trailing-spaces: disable",
+			"indentation: disable",
 		],
 		"example-6.2": [
 			"hyphens: {max-spaces-after: 2}",
@@ -148,6 +148,7 @@ const conf = {
 		],
 		"example-6.12": [
 			"comments-indentation: disable",
+			"indentation: disable",
 		],
 		"example-6.13": [
 			"comments-indentation: disable",
@@ -164,14 +165,15 @@ const conf = {
 
 		"example-7.2": [
 			"colons: {max-spaces-before: 1}",
+			"indentation: disable",
 		],
 		"example-7.3": [
 			"colons: {max-spaces-before: 1}",
+			"indentation: disable",
 		],
 		"example-7.4": [
 			"colons: {max-spaces-before: 1}",
-
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.5": [
 			"trailing-spaces: disable",
@@ -180,20 +182,21 @@ const conf = {
 			"trailing-spaces: disable",
 		],
 		"example-7.7": [
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.8": [
 			"colons: {max-spaces-before: 1}",
-
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.9": [
 			"trailing-spaces: disable",
 		],
+		"example-7.10": [
+			"indentation: disable",
+		],
 		"example-7.11": [
 			"colons: {max-spaces-before: 1}",
-
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.12": [
 			"trailing-spaces: disable",
@@ -203,7 +206,7 @@ const conf = {
 			"commas: {max-spaces-before: 1, min-spaces-after: 0}",
 		],
 		"example-7.14": [
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.15": [
 			"braces: {min-spaces-inside: 0, max-spaces-inside: 1}",
@@ -211,37 +214,42 @@ const conf = {
 			"colons: {max-spaces-before: 1}",
 		],
 		"example-7.16": [
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.17": [
 			"colons: {max-spaces-before: 1}",
-
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.18": [
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.19": [
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.20": [
 			"colons: {max-spaces-before: 1}",
-
-			// "indentation: disable",
+			"indentation: disable",
 		],
 		"example-7.21": [
 			"braces: {min-spaces-inside: 0}",
 			"colons: {max-spaces-before: 1}",
+			"indentation: disable",
+		],
+		"example-7.22": [
+			"indentation: disable",
 		],
 
 		"example-8.1": [
 			"empty-lines: {max-end: 1}",
+			"indentation: disable",
 		],
 		"example-8.2": [
 			"trailing-spaces: disable",
+			"indentation: disable",
 		],
 		"example-8.3": [
 			"trailing-spaces: disable",
+			"indentation: disable",
 		],
 		"example-8.5": [
 			"comments-indentation: disable",
@@ -264,17 +272,23 @@ const conf = {
 			"colons: {max-spaces-before: 1}",
 		],
 		"example-8.16": [
-			// "indentation: {spaces: 1}",
+			"indentation: {spaces: 1}",
 		],
 		"example-8.17": [
-			// "indentation: disable",
+			"indentation: disable",
+		],
+		"example-8.18": [
+			"indentation: disable",
 		],
 		"example-8.20": [
-			// "indentation: {indent-sequences: false}",
+			"indentation: {indent-sequences: false}",
 			"colons: {max-spaces-before: 1}",
 		],
+		"example-8.21": [
+			"indentation: disable",
+		],
 		"example-8.22": [
-			// "indentation: disable",
+			"indentation: disable",
 		],
 
 		"example-9.4": [
@@ -285,7 +299,7 @@ const conf = {
 			"colons: {max-spaces-before: 2}",
 		],
 		"example-10.2": [
-			// "indentation: {indent-sequences: false}",
+			"indentation: {indent-sequences: false}",
 		],
 		"example-10.8": [
 			"truthy: disable",

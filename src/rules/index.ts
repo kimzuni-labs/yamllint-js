@@ -31,6 +31,7 @@ import * as emptyLines from "./empty_lines";
 import * as emptyValues from "./empty_values";
 import * as floatValues from "./float_values";
 import * as hyphens from "./hyphens";
+import * as indentation from "./indentation";
 import * as keyDuplicates from "./key_duplicates";
 import * as keyOrdering from "./key_ordering";
 import * as lineLength from "./line_length";
@@ -57,6 +58,7 @@ export const _RULES = ([
 	emptyValues,
 	floatValues,
 	hyphens,
+	indentation,
 	keyDuplicates,
 	keyOrdering,
 	lineLength,

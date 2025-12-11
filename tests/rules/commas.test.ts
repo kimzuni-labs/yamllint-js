@@ -208,8 +208,7 @@ describe("Commas Test Case", () => {
 				"  max-spaces-before: 0",
 				"  min-spaces-after: 0",
 				"  max-spaces-after: -1",
-
-				// "indentation: disable",
+				"indentation: disable",
 			);
 
 			await check([
@@ -500,8 +499,7 @@ describe("Commas Test Case", () => {
 			"  max-spaces-before: 0",
 			"  min-spaces-after: 1",
 			"  max-spaces-after: 1",
-
-			// "indentation: disable",
+			"indentation: disable",
 		);
 
 		await check([
