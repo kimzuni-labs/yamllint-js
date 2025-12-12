@@ -290,6 +290,8 @@ export async function runContext(...options: string[] | [{
 		for (const key in env) {
 			process.env[key] = env[key];
 		}
+		if (!("GITHUB_ACTIONS" in env)) process.env.GITHUB_ACTIONS = undefined;
+		if (!("GITHUB_WORKFLOW" in env)) process.env.GITHUB_WORKFLOW = undefined;
 
 		if (inputData !== undefined) {
 			// @ts-expect-error: ts(2322)

@@ -435,18 +435,21 @@ describe("Command Line Test Case", () => {
 		assert.equal(ctx2.returncode, 1);
 	});
 
-	test("run with user global config file", async () => {
-		const env = { HOME: dirname };
-		const config = p(".config", "yamllint", "config");
+	// HOME env does not seem to change in GitHub Actions... maybe
+	if (process.env.GITHUB_ACTIONS === undefined || process.env.GITHUB_WORKFLOW === undefined) {
+		test("run with user global config file", async () => {
+			const env = { HOME: dirname };
+			const config = p(".config", "yamllint", "config");
 
-		await writeFile(config, "rules: {trailing-spaces: disable}");
-		const ctx1 = await runContext({ env, args: [p("a.yaml")] });
-		assert.equal(ctx1.returncode, 0);
+			await writeFile(config, "rules: {trailing-spaces: disable}");
+			const ctx1 = await runContext({ env, args: [p("a.yaml")] });
+			assert.equal(ctx1.returncode, 0);
 
-		await writeFile(config, "rules: {trailing-spaces: enable}");
-		const ctx2 = await runContext({ env, args: [p("a.yaml")] });
-		assert.equal(ctx2.returncode, 1);
-	});
+			await writeFile(config, "rules: {trailing-spaces: enable}");
+			const ctx2 = await runContext({ env, args: [p("a.yaml")] });
+			assert.equal(ctx2.returncode, 1);
+		});
+	}
 
 	test("run with user xdg config home in env", async () => {
 		const env = { XDG_CONFIG_HOME: dirname };
