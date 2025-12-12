@@ -40,9 +40,13 @@ function run(...args: string[]) {
 		returncode: number | null;
 		output: string;
 	}>((resolve) => {
+		const env = { ...process.env };
+		delete env.GITHUB_ACTIONS;
+		delete env.GITHUB_WORKFLOW;
+
 		const child = spawn(NODE, ["src/cli.ts", ...args], {
 			stdio: "pipe",
-			env: process.env,
+			env,
 		});
 
 		let output = "";
