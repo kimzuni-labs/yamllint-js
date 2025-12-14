@@ -29,7 +29,7 @@ import crypto from "node:crypto";
 import yaml from "yaml";
 import iconv from "iconv-lite";
 
-import { isASCII } from "../src/utils";
+import { isASCII, once } from "../src/utils";
 import { YamlLintConfig, YamlLintConfigError } from "../src/config";
 import * as linter from "../src/linter";
 import * as cli from "../src/cli";
@@ -247,6 +247,10 @@ export const ruleTestCase = (id: string) => async (...config: string[] | [Record
 
 
 
+const InputDataWarn = once(() => {
+	console.warn("Warning: Cannot capture exit code when using stdin in Node.js runtime");
+});
+
 export interface RunContextData {
 	/**
 	 * if `returncode` is `null`, `stdin` cannot be used on node.js.
@@ -315,7 +319,7 @@ export async function runContext(...options: string[] | [{
 
 	let returncode: number | null;
 	if (typeof Bun === "undefined" && inputData !== undefined) {
-		console.warn("Warning: Cannot capture exit code when using stdin in Node.js runtime");
+		InputDataWarn();
 		returncode = null;
 	} else {
 		const bak = process.cwd();

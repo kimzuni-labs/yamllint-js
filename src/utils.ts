@@ -61,6 +61,19 @@ export function bufferStartsWith(buf: Buffer, prefix: Buffer, position = 0) {
 
 
 
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+export function once<T = void, R extends boolean | undefined | void = void>(fn: (data: T) => R) {
+	let called = false;
+	return (data: T) => {
+		if (called) return;
+		const result = fn(data);
+		if (result !== false) called = true;
+		return result;
+	};
+}
+
+
+
 export const getHomedir = () => process.env.HOME ?? os.homedir();
 
 export const formatErrorMessage = (prefix: string, e: unknown) => `${prefix}${e instanceof Error ? e.message : String(e)}`;

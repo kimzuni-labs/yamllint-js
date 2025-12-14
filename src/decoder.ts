@@ -21,7 +21,7 @@ import iconv from "iconv-lite";
 
 import type { AG } from "./types";
 import { CODECS } from "./constants";
-import { bufferStartsWith, splitlines } from "./utils";
+import { bufferStartsWith, splitlines, once } from "./utils";
 
 
 
@@ -46,31 +46,37 @@ import { bufferStartsWith, splitlines } from "./utils";
  * [1]: <https://docs.python.org/3/library/codecs.html#standard-encodings>
  * [2]: <https://yaml.org/spec/1.2.2/#52-character-encodings>
  */
-export function detectEncoding(streamData: Buffer) {
-	if (process.env.YAMLLINT_FILE_ENCODING) {
+export const detectEncoding = (() => {
+	const warning = once(() => {
 		console.warn(
 			"YAMLLINT_FILE_ENCODING is meant for temporary",
 			"workarounds. It may be removed in a future version of",
 			"yamllint.",
 		);
-		return process.env.YAMLLINT_FILE_ENCODING;
-	}
-	if (bufferStartsWith(streamData, CODECS.BOM_UTF32_BE)) return "utf_32";
-	if (bufferStartsWith(streamData, CODECS.UTF32_ZERO) && streamData.length >= 4) return "utf_32_be";
-	if (bufferStartsWith(streamData, CODECS.BOM_UTF32_LE)) return "utf_32";
-	if (bufferStartsWith(streamData, CODECS.UTF32_ZERO, 1)) return "utf_32_le";
-	if (bufferStartsWith(streamData, CODECS.BOM_UTF16_BE)) return "utf_16";
-	if (bufferStartsWith(streamData, CODECS.UTF16_ZERO) && streamData.length >= 2) return "utf_16_be";
-	if (bufferStartsWith(streamData, CODECS.BOM_UTF16_LE)) return "utf_16";
-	if (bufferStartsWith(streamData, CODECS.UTF16_ZERO, 1)) return "utf_16_le";
+	});
 
-	/*
-	 * iconv-lite is not support utf_8_sig.
-	 * Use the `addBOM`/`stripBOM` option instead.
-	 */
-	if (bufferStartsWith(streamData, CODECS.BOM_UTF8)) return "utf_8";
-	return "utf_8";
-}
+	return function detectEncoding(streamData: Buffer) {
+		if (process.env.YAMLLINT_FILE_ENCODING) {
+			warning();
+			return process.env.YAMLLINT_FILE_ENCODING;
+		}
+		if (bufferStartsWith(streamData, CODECS.BOM_UTF32_BE)) return "utf_32";
+		if (bufferStartsWith(streamData, CODECS.UTF32_ZERO) && streamData.length >= 4) return "utf_32_be";
+		if (bufferStartsWith(streamData, CODECS.BOM_UTF32_LE)) return "utf_32";
+		if (bufferStartsWith(streamData, CODECS.UTF32_ZERO, 1)) return "utf_32_le";
+		if (bufferStartsWith(streamData, CODECS.BOM_UTF16_BE)) return "utf_16";
+		if (bufferStartsWith(streamData, CODECS.UTF16_ZERO) && streamData.length >= 2) return "utf_16_be";
+		if (bufferStartsWith(streamData, CODECS.BOM_UTF16_LE)) return "utf_16";
+		if (bufferStartsWith(streamData, CODECS.UTF16_ZERO, 1)) return "utf_16_le";
+
+		/*
+		 * iconv-lite is not support utf_8_sig.
+		 * Use the `addBOM`/`stripBOM` option instead.
+		 */
+		if (bufferStartsWith(streamData, CODECS.BOM_UTF8)) return "utf_8";
+		return "utf_8";
+	};
+})();
 
 
 
