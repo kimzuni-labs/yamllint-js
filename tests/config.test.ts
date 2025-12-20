@@ -62,21 +62,38 @@ const assertBasicError = async (
 
 
 describe("Simple Config Test Case", () => {
-	test("parse config", async () => {
-		const conf = await newConf(
+	describe("parse config", () => {
+		const run = (
+			label: string,
+			config: string[],
+		) => {
+			test(label, async () => {
+				const conf = await newConf(...config);
+
+				assert.deepStrictEqual(Object.keys(conf.rules), ["colons"]);
+				assert.ok(conf.rules.colons);
+				assert.equal(conf.rules.colons["max-spaces-before"], 0);
+				assert.equal(conf.rules.colons["max-spaces-after"], 1);
+
+				assert.equal(conf.enabledRules().length, 1);
+			});
+		};
+
+		run("kebab-case", [
 			"rules:",
 			"  colons:",
 			"    max-spaces-before: 0",
 			"    max-spaces-after: 1",
 			"",
-		);
+		]);
 
-		assert.deepStrictEqual(Object.keys(conf.rules), ["colons"]);
-		assert.ok(conf.rules.colons);
-		assert.equal(conf.rules.colons["max-spaces-before"], 0);
-		assert.equal(conf.rules.colons["max-spaces-after"], 1);
-
-		assert.equal(conf.enabledRules().length, 1);
+		run("camelCase", [
+			"rules:",
+			"  colons:",
+			"    maxSpacesBefore: 0",
+			"    maxSpacesAfter: 1",
+			"",
+		]);
 	});
 
 	test("invalid conf", async () => {

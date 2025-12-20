@@ -64,3 +64,16 @@ export function bufferStartsWith(buf: Buffer, prefix: Buffer, position = 0) {
 export const getHomedir = () => process.env.HOME ?? os.homedir();
 
 export const formatErrorMessage = (prefix: string, e: unknown) => `${prefix}${e instanceof Error ? e.message : String(e)}`;
+
+export const kebabCase = (string: string) => {
+	string = string.replace(/([A-Z])/g, (_, c) => `-${String(c).toLowerCase()}`);
+	return string.startsWith("-") ? string.slice(1) : string;
+};
+
+export const kebabCaseKeys = (data: Record<string, unknown>) => {
+	const newData = {} as Record<string, unknown>;
+	for (const key in data) {
+		newData[kebabCase(key)] = data[key];
+	}
+	return newData;
+};

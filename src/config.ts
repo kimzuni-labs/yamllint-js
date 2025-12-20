@@ -26,7 +26,7 @@ import { cosmiconfig, defaultLoaders, type Loader } from "cosmiconfig";
 
 import type { RuleValue, UserConfig, Rule, Level, Alias } from "./types";
 import { LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
-import { splitlines, getHomedir, formatErrorMessage } from "./utils";
+import { splitlines, getHomedir, formatErrorMessage, kebabCaseKeys } from "./utils";
 import * as yamllintRules from "./rules";
 import * as decoder from "./decoder";
 
@@ -150,7 +150,7 @@ export class YamlLintConfig {
 		if (!value || Array.isArray(value) || typeof value !== "object") {
 			throw new YamlLintConfigError("invalid config: not a mapping");
 		}
-		const conf = value as Record<string, unknown>;
+		const conf = kebabCaseKeys(value as Record<string, unknown>);
 
 		if (
 			conf.rules !== undefined
@@ -223,7 +223,7 @@ export async function validateRuleConf(
 	if (!config || typeof config !== "object") {
 		throw new YamlLintConfigError(`invalid config: rule "${rule.ID}": should be either "enable", "disable" or a mapping`);
 	}
-	const conf = config as Record<string, unknown>;
+	const conf = kebabCaseKeys(config as Record<string, unknown>);
 
 	conf.level = validateLevel(conf.level);
 	if (conf.level === undefined) {
