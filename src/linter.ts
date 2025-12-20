@@ -112,14 +112,11 @@ export function* getCosmeticProblems(buffer: string, conf: YamlLintConfig, filep
 	const tokenRules = [];
 	const commentRules = [];
 	const lineRules = [];
+	const context: Record<string, object> = {};
 	for (const rule of rules) {
 		if (rule.TYPE === "token") tokenRules.push(rule);
 		if (rule.TYPE === "comment") commentRules.push(rule);
 		if (rule.TYPE === "line") lineRules.push(rule);
-	}
-
-	const context: Record<string, object> = {};
-	for (const rule of tokenRules) {
 		context[rule.ID] = {};
 	}
 
