@@ -62,21 +62,47 @@ const assertBasicError = async (
 
 
 describe("Simple Config Test Case", () => {
-	test("parse config", async () => {
-		const conf = await newConf(
+	describe("parse config", () => {
+		const run = (
+			label: string,
+			config: string[],
+		) => {
+			test(label, async () => {
+				const conf = await newConf(...config);
+
+				assert.deepStrictEqual(Object.keys(conf.rules), ["colons"]);
+				assert.ok(conf.rules.colons);
+				assert.equal(conf.rules.colons["max-spaces-before"], 0);
+				assert.equal(conf.rules.colons["max-spaces-after"], 1);
+
+				assert.equal(conf.enabledRules().length, 1);
+			});
+		};
+
+		run("kebab-case", [
 			"rules:",
 			"  colons:",
 			"    max-spaces-before: 0",
 			"    max-spaces-after: 1",
 			"",
-		);
+		]);
 
-		assert.deepStrictEqual(Object.keys(conf.rules), ["colons"]);
-		assert.ok(conf.rules.colons);
-		assert.equal(conf.rules.colons["max-spaces-before"], 0);
-		assert.equal(conf.rules.colons["max-spaces-after"], 1);
+		run("camelCase", [
+			"rules:",
+			"  colons:",
+			"    maxSpacesBefore: 0",
+			"    maxSpacesAfter: 1",
+			"",
+		]);
 
-		assert.equal(conf.enabledRules().length, 1);
+		run("defineConfig-style", [
+			"rules:",
+			"  colons:",
+			"    - error",
+			"    - maxSpacesBefore: 0",
+			"      maxSpacesAfter: 1",
+			"",
+		]);
 	});
 
 	test("invalid conf", async () => {
@@ -620,6 +646,7 @@ describe("Extended Library Config Test Case", () => {
 
 		assert.deepStrictEqual(Object.keys(conf.rules).sort(), Object.keys(old.rules).sort());
 		for (const rule in conf.rules) {
+			// @ts-expect-error: ts(7053)
 			assert.deepStrictEqual(conf.rules[rule], old.rules[rule]);
 		}
 	};

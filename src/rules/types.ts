@@ -17,12 +17,19 @@
 
 import type yaml from "yaml";
 import type z from "zod";
-import type { Ignore } from "ignore";
 
-import type { G, Level, ExtractToken } from "../types";
+import type { G, ExtractToken } from "../types";
 import type { YamlLintConfig } from "../config";
 import type { Line, Token, Comment } from "../parser";
 import type { LintProblem } from "../linter";
+
+import type { RuleId, _rules } from "./";
+
+
+
+export {
+	RuleId,
+};
 
 
 
@@ -72,21 +79,9 @@ export type Rule = LineRule | TokenRule | CommentRule;
 
 
 
-export interface RuleObjectBaseValue {
-	level: Exclude<Level, null>;
-	ignore?: Ignore;
-	"ignore-from-file"?: Ignore;
-}
+export type RuleConf<ID extends RuleId = RuleId> =
+	typeof _rules[ID] extends { CONF: unknown }
+		? z.infer<typeof _rules[ID]["CONF"]>
 
-export type RuleObjectValue<
-	T extends Record<string, unknown> | undefined = undefined,
-> =
-	T extends undefined
-		? RuleObjectBaseValue
-		: RuleObjectBaseValue & T;
-
-export type RuleValue<
-	T extends Record<string, unknown> | undefined = undefined,
-> =
-	| false
-	| RuleObjectValue<T>;
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		: {};

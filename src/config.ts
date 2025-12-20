@@ -22,10 +22,11 @@ import path from "node:path";
 import yaml from "yaml";
 import z from "zod";
 import ignore, { type Ignore } from "ignore";
+import { cosmiconfig, defaultLoaders, type Loader } from "cosmiconfig";
 
-import type { RuleValue, UserConfig, Rule, Level, Alias } from "./types";
-import { LEVELS, ALIASES, YAML_OPTIONS } from "./constants";
-import { splitlines, formatErrorMessage } from "./utils";
+import type { Prettify, RuleConf, Rule, RuleId, AllLevel, Level, Alias } from "./types";
+import { LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
+import { splitlines, getHomedir, formatErrorMessage, kebabCaseKeys } from "./utils";
 import * as yamllintRules from "./rules";
 import * as decoder from "./decoder";
 
@@ -40,20 +41,37 @@ export class YamlLintConfigError extends Error {}
 export type YamlLintConfigProps = {
 	content: string;
 	file?: never;
+	data?: never;
 } | {
 	content?: never;
 	file: string;
+	data?: never;
+} | {
+	content?: never;
+	file?: never;
+	data: unknown;
+};
+
+type YamlLintConfigRules = {
+	[ID in RuleId]?: false | Prettify<
+		& {
+			level: Extract<AllLevel, "warning" | "error">;
+			ignore?: Ignore;
+			"ignore-from-file"?: Ignore;
+		}
+		& RuleConf<ID>
+	>
 };
 
 export class YamlLintConfig {
 	#props: YamlLintConfigProps;
-
+	#data: unknown;
 	#ignore?: Ignore;
 	#yamlFiles = ig().add(["*.yaml", "*.yml", ".yamllint"]);
 	locale?: string;
-	#rules: Record<string, undefined | RuleValue> = {};
+	#rules: Record<string, unknown> = {};
 	get rules() {
-		return this.#rules as Exclude<UserConfig["rules"], undefined>;
+		return this.#rules as YamlLintConfigRules;
 	}
 
 	static async init(props: YamlLintConfigProps) {
@@ -65,7 +83,13 @@ export class YamlLintConfig {
 	}
 
 	constructor(props: YamlLintConfigProps) {
-		assert(Number(props.content === undefined) ^ Number(props.file === undefined));
+		assert(
+			Number(props.content !== undefined)
+			+ Number(props.file !== undefined)
+			+ Number(props.data !== undefined)
+			=== 1,
+		);
+
 		this.#props = props;
 	}
 
@@ -80,7 +104,7 @@ export class YamlLintConfig {
 	enabledRules(filepath?: string) {
 		const rules: Rule[] = [];
 		for (const id in this.rules) {
-			const val = this.rules[id];
+			const val = this.rules[id as RuleId];
 			if (
 				val
 				&& (
@@ -116,23 +140,29 @@ export class YamlLintConfig {
 	}
 
 	async #init() {
-		this.#props.content ??= decoder.autoDecode(await fs.readFile(this.#props.file));
+		const props = this.#props;
+		if (props.data !== undefined) {
+			this.#data = props.data;
+		} else {
+			try {
+				if (props.content !== undefined) {
+					this.#data = yaml.parse(props.content, YAML_OPTIONS) as unknown;
+				} else {
+					this.#data = await loadConfigFile(props.file).then(x => x?.config as unknown);
+				}
+			} catch (e) {
+				throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
+			}
+		}
 	}
 
 	async #parse() {
-		assert(this.#props.content !== undefined);
-		let parsed: unknown;
-		try {
-			parsed = yaml.parse(this.#props.content, YAML_OPTIONS);
-		} catch (e) {
-			throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
-		}
-
-		if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
+		const value = this.#data;
+		if (!value || Array.isArray(value) || typeof value !== "object") {
 			throw new YamlLintConfigError("invalid config: not a mapping");
 		}
+		const conf = kebabCaseKeys(value as Record<string, unknown>);
 
-		const conf = parsed as Record<string, unknown>;
 		if (
 			conf.rules !== undefined
 			&& (typeof conf.rules !== "object" || conf.rules === null)
@@ -142,11 +172,24 @@ export class YamlLintConfig {
 		const userRules = (conf.rules ?? {}) as Record<string, unknown>;
 
 		for (const key in userRules) {
-			const value = userRules[key];
-			if (value === "disable") {
+			const userRule = userRules[key];
+			if (
+				userRule === false
+				|| userRule === "disable"
+				|| (
+					Array.isArray(userRule)
+					&& validateLevel(userRule[0]) === null
+				)
+			) {
 				this.#rules[key] = false;
+			} else if (Array.isArray(userRule)) {
+				const [ruleLevel, ruleConf] = userRule as unknown[];
+				this.#rules[key] = {
+					level: ruleLevel,
+					...(ruleConf && typeof ruleConf === "object" ? ruleConf : {}),
+				};
 			} else {
-				this.#rules[key] = (value === "enable" ? {} : value) as RuleValue;
+				this.#rules[key] = userRule === "enable" ? {} : userRule;
 			}
 		}
 
@@ -194,17 +237,14 @@ export class YamlLintConfig {
 
 
 
-export async function validateRuleConf(
-	rule: ReturnType<typeof yamllintRules.get>,
-	config: unknown,
-): Promise<RuleValue> {
+export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get>, config: unknown) {
 	// disable
 	if (config === false) return false;
 
 	if (!config || typeof config !== "object") {
 		throw new YamlLintConfigError(`invalid config: rule "${rule.ID}": should be either "enable", "disable" or a mapping`);
 	}
-	const conf = config as Record<string, unknown>;
+	const conf = kebabCaseKeys(config as Record<string, unknown>);
 
 	conf.level = validateLevel(conf.level);
 	if (conf.level === undefined) {
@@ -257,8 +297,44 @@ export async function validateRuleConf(
 		if (res) throw new YamlLintConfigError(`invalid config: ${rule.ID}: ${res}`);
 	}
 
-	return conf as unknown as RuleValue;
+	return conf;
 }
+
+
+
+export const isExecutableFile = (() => {
+	const executablePattern = /\.[cm]?[jt]s$/;
+	return function isExecutableFile(filepath: string) {
+		return executablePattern.test(filepath);
+	};
+})();
+
+export const loadConfigFile = (() => {
+	const loadYAML: Loader = async function loadYAML(filepath) {
+		const content = decoder.autoDecode(await fs.readFile(filepath));
+		return yaml.parse(content, YAML_OPTIONS) as unknown;
+	};
+
+	/**
+	 * Node.js loads JS/TS files as UTF-8 (with or without BOM), so autoDecode is not needed.
+	 */
+	const explorer = cosmiconfig("yamllint", {
+		cache: false,
+		stopDir: getHomedir(),
+		searchPlaces: CONFIG_SEARCH_PLACES,
+		loaders: {
+			...defaultLoaders,
+			".json": loadYAML,
+			".yaml": loadYAML,
+			".yml": loadYAML,
+			noExt: loadYAML,
+		},
+	});
+
+	return function loadConfigFile(filepath?: string) {
+		return filepath === undefined ? explorer.search() : explorer.load(filepath);
+	};
+})();
 
 
 
