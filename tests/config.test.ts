@@ -94,6 +94,15 @@ describe("Simple Config Test Case", () => {
 			"    maxSpacesAfter: 1",
 			"",
 		]);
+
+		run("defineConfig-style", [
+			"rules:",
+			"  colons:",
+			"    - error",
+			"    - maxSpacesBefore: 0",
+			"      maxSpacesAfter: 1",
+			"",
+		]);
 	});
 
 	test("invalid conf", async () => {
@@ -637,6 +646,7 @@ describe("Extended Library Config Test Case", () => {
 
 		assert.deepStrictEqual(Object.keys(conf.rules).sort(), Object.keys(old.rules).sort());
 		for (const rule in conf.rules) {
+			// @ts-expect-error: ts(7053)
 			assert.deepStrictEqual(conf.rules[rule], old.rules[rule]);
 		}
 	};

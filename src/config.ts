@@ -24,7 +24,7 @@ import z from "zod";
 import ignore, { type Ignore } from "ignore";
 import { cosmiconfig, defaultLoaders, type Loader } from "cosmiconfig";
 
-import type { RuleValue, UserConfig, Rule, Level, Alias } from "./types";
+import type { Prettify, RuleConf, Rule, RuleId, AllLevel, Level, Alias } from "./types";
 import { LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
 import { splitlines, getHomedir, formatErrorMessage, kebabCaseKeys } from "./utils";
 import * as yamllintRules from "./rules";
@@ -52,15 +52,26 @@ export type YamlLintConfigProps = {
 	data: unknown;
 };
 
+type YamlLintConfigRules = {
+	[ID in RuleId]?: false | Prettify<
+		& {
+			level: Extract<AllLevel, "warning" | "error">;
+			ignore?: Ignore;
+			"ignore-from-file"?: Ignore;
+		}
+		& RuleConf<ID>
+	>
+};
+
 export class YamlLintConfig {
 	#props: YamlLintConfigProps;
 	#data: unknown;
 	#ignore?: Ignore;
 	#yamlFiles = ig().add(["*.yaml", "*.yml", ".yamllint"]);
 	locale?: string;
-	#rules: Record<string, undefined | RuleValue> = {};
+	#rules: Record<string, unknown> = {};
 	get rules() {
-		return this.#rules as Exclude<UserConfig["rules"], undefined>;
+		return this.#rules as YamlLintConfigRules;
 	}
 
 	static async init(props: YamlLintConfigProps) {
@@ -93,7 +104,7 @@ export class YamlLintConfig {
 	enabledRules(filepath?: string) {
 		const rules: Rule[] = [];
 		for (const id in this.rules) {
-			const val = this.rules[id];
+			const val = this.rules[id as RuleId];
 			if (
 				val
 				&& (
@@ -161,11 +172,24 @@ export class YamlLintConfig {
 		const userRules = (conf.rules ?? {}) as Record<string, unknown>;
 
 		for (const key in userRules) {
-			const value = userRules[key];
-			if (value === "disable") {
+			const userRule = userRules[key];
+			if (
+				userRule === false
+				|| userRule === "disable"
+				|| (
+					Array.isArray(userRule)
+					&& validateLevel(userRule[0]) === null
+				)
+			) {
 				this.#rules[key] = false;
+			} else if (Array.isArray(userRule)) {
+				const [ruleLevel, ruleConf] = userRule as unknown[];
+				this.#rules[key] = {
+					level: ruleLevel,
+					...(ruleConf && typeof ruleConf === "object" ? ruleConf : {}),
+				};
 			} else {
-				this.#rules[key] = (value === "enable" ? {} : value) as RuleValue;
+				this.#rules[key] = userRule === "enable" ? {} : userRule;
 			}
 		}
 
@@ -213,10 +237,7 @@ export class YamlLintConfig {
 
 
 
-export async function validateRuleConf(
-	rule: ReturnType<typeof yamllintRules.get>,
-	config: unknown,
-): Promise<RuleValue> {
+export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get>, config: unknown) {
 	// disable
 	if (config === false) return false;
 
@@ -276,7 +297,7 @@ export async function validateRuleConf(
 		if (res) throw new YamlLintConfigError(`invalid config: ${rule.ID}: ${res}`);
 	}
 
-	return conf as unknown as RuleValue;
+	return conf;
 }
 
 

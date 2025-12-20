@@ -19,13 +19,21 @@ import type yaml from "yaml";
 
 import type { Level, Alias } from "./constants";
 import type { Token } from "./parser";
-import type { RuleValue } from "./rules/types";
 
 export type {
 	CommonCheckProps, LineCheckProps, TokenCheckProps, CommentCheckProps,
 	BaseRule, LineRule, TokenRule, CommentRule, Rule,
-	RuleObjectBaseValue, RuleObjectValue, RuleValue,
+	RuleId, RuleConf,
 } from "./rules/types";
+
+
+
+/**
+ * @see https://www.totaltypescript.com/concepts/the-prettify-helper
+ */
+export type Prettify<T> = {
+	[K in keyof T]: T[K];
+} & {};
 
 
 
@@ -81,14 +89,3 @@ export type ParentTokenData = Exclude<
 	| yaml.CST.SourceToken
 	| yaml.CST.ErrorToken
 >;
-
-
-
-export interface UserConfig {
-	extends?: string;
-	ignore?: string | string[];
-	"ignore-from-file"?: string | string[];
-	"yaml-files"?: string | string[];
-	locale?: string;
-	rules?: Partial<Record<string, RuleValue<Record<string, unknown>>>>;
-}

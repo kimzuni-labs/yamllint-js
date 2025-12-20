@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import assert from "node:assert";
 import { Readable } from "node:stream";
 import util from "node:util";
 import yaml from "yaml";
 
-import type { Level } from "./types";
+import type { Level, RuleId } from "./types";
 import type { YamlLintConfig } from "./config";
 import { YAML_OPTIONS } from "./constants";
 import * as decoder from "./decoder";
@@ -190,7 +191,8 @@ export function* getCosmeticProblems(buffer: string, conf: YamlLintConfig, filep
 		const isLine = elem instanceof parser.Line;
 		const targetRules = isLine ? lineRules : elem instanceof parser.Comment ? commentRules : tokenRules;
 		for (const rule of targetRules) {
-			const ruleConf = conf.rules[rule.ID] as Exclude<typeof conf.rules[string], undefined | false>;
+			const ruleConf = conf.rules[rule.ID as RuleId];
+			assert(ruleConf);
 
 			// @ts-expect-error: ts(2345)
 			const problems = rule.check({

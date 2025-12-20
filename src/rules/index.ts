@@ -44,31 +44,34 @@ import * as truthy from "./truthy";
 
 
 
-export const _RULES = ([
-	anchors,
-	braces,
-	brackets,
-	colons,
-	commas,
-	commentsIndentation,
-	comments,
-	documentEnd,
-	documentStart,
-	emptyLines,
-	emptyValues,
-	floatValues,
-	hyphens,
-	indentation,
-	keyDuplicates,
-	keyOrdering,
-	lineLength,
-	newLineAtEndOfFile,
-	newLines,
-	octalValues,
-	quotedStrings,
-	trailingSpaces,
-	truthy,
-] as Rule[]).reduce<Partial<Record<string, Rule>>>((acc, rule) => ({ ...acc, [rule.ID]: rule }), {});
+export const _rules = {
+	[anchors.ID]: anchors,
+	[braces.ID]: braces,
+	[brackets.ID]: brackets,
+	[colons.ID]: colons,
+	[commas.ID]: commas,
+	[commentsIndentation.ID]: commentsIndentation,
+	[comments.ID]: comments,
+	[documentEnd.ID]: documentEnd,
+	[documentStart.ID]: documentStart,
+	[emptyLines.ID]: emptyLines,
+	[emptyValues.ID]: emptyValues,
+	[floatValues.ID]: floatValues,
+	[hyphens.ID]: hyphens,
+	[indentation.ID]: indentation,
+	[keyDuplicates.ID]: keyDuplicates,
+	[keyOrdering.ID]: keyOrdering,
+	[lineLength.ID]: lineLength,
+	[newLineAtEndOfFile.ID]: newLineAtEndOfFile,
+	[newLines.ID]: newLines,
+	[octalValues.ID]: octalValues,
+	[quotedStrings.ID]: quotedStrings,
+	[trailingSpaces.ID]: trailingSpaces,
+	[truthy.ID]: truthy,
+} as const;
+
+export type RuleId = keyof typeof _rules;
+export const _RULES = { ..._rules } as unknown as Partial<Record<string, Rule>>;
 
 
 
