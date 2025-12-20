@@ -57,31 +57,38 @@ export const DEFAULT: Conf = {
 };
 
 export type Conf = z.infer<typeof CONF>;
+export interface Context {
+	hasShownProblem?: true;
+}
 
 
 
-export function* check({ conf, line }: LineCheckProps<Conf>) {
-	let newlineChar: string;
-	switch (conf.type) {
-		case "unix":
-			newlineChar = "\n";
-			break;
-		case "dos":
-			newlineChar = "\r\n";
-			break;
-		default:
-			newlineChar = EOL;
-			break;
-	}
+export function* check({ conf, line, context }: LineCheckProps<Conf, Context>) {
+	if (!context.hasShownProblem) {
+		let newlineChar: string;
+		switch (conf.type) {
+			case "unix":
+				newlineChar = "\n";
+				break;
+			case "dos":
+				newlineChar = "\r\n";
+				break;
+			default:
+				newlineChar = EOL;
+				break;
+		}
 
-	if (line.start === 0 && line.buffer.length > line.end) {
-		if (line.buffer.slice(line.end, line.end + newlineChar.length) !== newlineChar) {
-			const c = JSON.stringify(newlineChar).slice(1, -1);
-			yield new LintProblem(
-				1,
-				line.end - line.start + 1,
-				`wrong new line character: expected ${c}`,
-			);
+		if (line.buffer.length > line.end) {
+			if (line.buffer.slice(line.end, line.end + newlineChar.length) !== newlineChar) {
+				context.hasShownProblem = true;
+
+				const c = JSON.stringify(newlineChar).slice(1, -1);
+				yield new LintProblem(
+					line.lineNo,
+					line.end - line.start + 1,
+					`wrong new line character: expected ${c}`,
+				);
+			}
 		}
 	}
 }

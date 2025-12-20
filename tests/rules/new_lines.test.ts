@@ -222,13 +222,13 @@ describe("New Lines Test Case", () => {
 		await check([
 			`---${EOL}text${INV}foo${EOL}`,
 		], [
-			// [2, 5],
+			[2, 5],
 		]);
 
 		await check([
 			`---${EOL}text${INV}`,
 		], [
-			// [2, 5],
+			[2, 5],
 		]);
 	});
 });
