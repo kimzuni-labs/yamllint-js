@@ -22,10 +22,11 @@ import path from "node:path";
 import yaml from "yaml";
 import z from "zod";
 import ignore, { type Ignore } from "ignore";
+import { cosmiconfig, defaultLoaders, type Loader } from "cosmiconfig";
 
 import type { RuleValue, UserConfig, Rule, Level, Alias } from "./types";
-import { LEVELS, ALIASES, YAML_OPTIONS } from "./constants";
-import { splitlines, formatErrorMessage } from "./utils";
+import { LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
+import { splitlines, getHomedir, formatErrorMessage } from "./utils";
 import * as yamllintRules from "./rules";
 import * as decoder from "./decoder";
 
@@ -40,14 +41,20 @@ export class YamlLintConfigError extends Error {}
 export type YamlLintConfigProps = {
 	content: string;
 	file?: never;
+	data?: never;
 } | {
 	content?: never;
 	file: string;
+	data?: never;
+} | {
+	content?: never;
+	file?: never;
+	data: unknown;
 };
 
 export class YamlLintConfig {
 	#props: YamlLintConfigProps;
-
+	#data: unknown;
 	#ignore?: Ignore;
 	#yamlFiles = ig().add(["*.yaml", "*.yml", ".yamllint"]);
 	locale?: string;
@@ -65,7 +72,13 @@ export class YamlLintConfig {
 	}
 
 	constructor(props: YamlLintConfigProps) {
-		assert(Number(props.content === undefined) ^ Number(props.file === undefined));
+		assert(
+			Number(props.content !== undefined)
+			+ Number(props.file !== undefined)
+			+ Number(props.data !== undefined)
+			=== 1,
+		);
+
 		this.#props = props;
 	}
 
@@ -116,23 +129,29 @@ export class YamlLintConfig {
 	}
 
 	async #init() {
-		this.#props.content ??= decoder.autoDecode(await fs.readFile(this.#props.file));
+		const props = this.#props;
+		if (props.data !== undefined) {
+			this.#data = props.data;
+		} else {
+			try {
+				if (props.content !== undefined) {
+					this.#data = yaml.parse(props.content, YAML_OPTIONS) as unknown;
+				} else {
+					this.#data = await loadConfigFile(props.file).then(x => x?.config as unknown);
+				}
+			} catch (e) {
+				throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
+			}
+		}
 	}
 
 	async #parse() {
-		assert(this.#props.content !== undefined);
-		let parsed: unknown;
-		try {
-			parsed = yaml.parse(this.#props.content, YAML_OPTIONS);
-		} catch (e) {
-			throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
-		}
-
-		if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
+		const value = this.#data;
+		if (!value || Array.isArray(value) || typeof value !== "object") {
 			throw new YamlLintConfigError("invalid config: not a mapping");
 		}
+		const conf = value as Record<string, unknown>;
 
-		const conf = parsed as Record<string, unknown>;
 		if (
 			conf.rules !== undefined
 			&& (typeof conf.rules !== "object" || conf.rules === null)
@@ -259,6 +278,42 @@ export async function validateRuleConf(
 
 	return conf as unknown as RuleValue;
 }
+
+
+
+export const isExecutableFile = (() => {
+	const executablePattern = /\.[cm]?[jt]s$/;
+	return function isExecutableFile(filepath: string) {
+		return executablePattern.test(filepath);
+	};
+})();
+
+export const loadConfigFile = (() => {
+	const loadYAML: Loader = async function loadYAML(filepath) {
+		const content = decoder.autoDecode(await fs.readFile(filepath));
+		return yaml.parse(content, YAML_OPTIONS) as unknown;
+	};
+
+	/**
+	 * Node.js loads JS/TS files as UTF-8 (with or without BOM), so autoDecode is not needed.
+	 */
+	const explorer = cosmiconfig("yamllint", {
+		cache: false,
+		stopDir: getHomedir(),
+		searchPlaces: CONFIG_SEARCH_PLACES,
+		loaders: {
+			...defaultLoaders,
+			".json": loadYAML,
+			".yaml": loadYAML,
+			".yml": loadYAML,
+			noExt: loadYAML,
+		},
+	});
+
+	return function loadConfigFile(filepath?: string) {
+		return filepath === undefined ? explorer.search() : explorer.load(filepath);
+	};
+})();
 
 
 

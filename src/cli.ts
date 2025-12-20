@@ -29,7 +29,7 @@ import { hideBin } from "yargs/helpers";
 
 import { APP, LEVELS, PROBLEM_LEVELS } from "./constants";
 import { getHomedir } from "./utils";
-import { YamlLintConfig } from "./config";
+import { YamlLintConfig, loadConfigFile } from "./config";
 import * as linter from "./linter";
 
 
@@ -182,25 +182,6 @@ export async function showProblems(
 
 
 
-export async function findProjectConfigFilepath(pathname = ".") {
-	for (const filename of [".yamllint", ".yamllint.yaml", ".yamllint.yml"]) {
-		const filepath = path.join(pathname, filename);
-		const isFile = await fs.stat(filepath)
-			.then(x => x.isFile())
-			.catch(() => false);
-		if (isFile) return filepath;
-	}
-
-	const abs = path.resolve(pathname);
-	const parent = path.dirname(abs);
-	if (abs === getHomedir() || abs === parent) {
-		return;
-	}
-	return findProjectConfigFilepath(parent);
-}
-
-
-
 export const parseArgs = (argv: string[]) => {
 	const isStdin = argv.includes("-");
 	return yargs(argv)
@@ -335,7 +316,6 @@ export async function run(argv = hideBin(process.argv)): Promise<number> {
 	let conf: YamlLintConfig;
 	let configData = getValue(args.configData);
 	const configFile = getValue(args.configFile);
-	const projectConfigFilepath = await findProjectConfigFilepath();
 	try {
 		if (configData !== undefined) {
 			if (configData !== "" && !configData.includes(":")) {
@@ -344,16 +324,19 @@ export async function run(argv = hideBin(process.argv)): Promise<number> {
 			conf = await YamlLintConfig.init({ content: configData });
 		} else if (configFile !== undefined) {
 			conf = await YamlLintConfig.init({ file: configFile });
-		} else if (projectConfigFilepath) {
-			conf = await YamlLintConfig.init({ file: projectConfigFilepath });
-		} else if (
-			await fs.stat(userGlobalConfig)
-				.then(x => x.isFile())
-				.catch(() => false)
-		) {
-			conf = await YamlLintConfig.init({ file: userGlobalConfig });
 		} else {
-			conf = await YamlLintConfig.init({ content: "extends: default" });
+			const load = await loadConfigFile();
+			if (load !== null) {
+				conf = await YamlLintConfig.init({ data: load.config });
+			} else if (
+				await fs.stat(userGlobalConfig)
+					.then(x => x.isFile())
+					.catch(() => false)
+			) {
+				conf = await YamlLintConfig.init({ file: userGlobalConfig });
+			} else {
+				conf = await YamlLintConfig.init({ content: "extends: default" });
+			}
 		}
 	} catch (e) {
 		console.error(String(e));

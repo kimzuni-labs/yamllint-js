@@ -16,6 +16,7 @@
  */
 
 import type yaml from "yaml";
+import { getDefaultSearchPlaces } from "cosmiconfig";
 
 import pkg from "../package.json";
 import { B } from "./utils";
@@ -37,6 +38,13 @@ export const YAML_OPTIONS: yaml.ParseOptions & yaml.DocumentOptions = {
 	version: "1.1",
 	uniqueKeys: false,
 };
+
+export const CONFIG_SEARCH_PLACES = [
+	...getDefaultSearchPlaces("yamllint"),
+	".yamllint",
+	".yamllint.yaml",
+	".yamllint.yml",
+];
 
 
 

@@ -884,24 +884,93 @@ describe("Command Line Config Test Case", () => {
 
 	describe("config file", () => {
 		const workspace = { "a.yml": "hello: world\n" };
-		const conf = [
-			"---",
-			"extends: relaxed",
-			"",
-		];
 
-		for (const confFile of confFiles) {
-			test(confFile, async () => {
-				await run({
-					workspace,
-					stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+		describe("yaml", () => {
+			const conf = [
+				"---",
+				"extends: relaxed",
+				"",
+			];
+
+			for (const confFile of confFiles) {
+				test(confFile, async () => {
+					await run({
+						workspace,
+						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+					});
+					await run({
+						workspace: { ...workspace, [confFile]: conf },
+						stdout: "",
+					});
 				});
-				await run({
-					workspace: { ...workspace, [confFile]: conf },
-					stdout: "",
+			}
+		});
+
+		describe("json", () => {
+			const confFiles = [".yamllintrc", ".yamllintrc.json"];
+			const conf = [
+				"{",
+				"  \"extends\": \"relaxed\"",
+				"}",
+			];
+
+			for (const confFile of confFiles) {
+				test(confFile, async () => {
+					await run({
+						workspace,
+						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+					});
+					await run({
+						workspace: { ...workspace, [confFile]: conf },
+						stdout: "",
+					});
 				});
-			});
-		}
+			}
+		});
+
+		describe("cjs", () => {
+			const confFiles = ["yamllint.config.cjs"];
+			const conf = [
+				"module.exports = {",
+				"  extends: 'relaxed'",
+				"};",
+			];
+
+			for (const confFile of confFiles) {
+				test(confFile, async () => {
+					await run({
+						workspace,
+						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+					});
+					await run({
+						workspace: { ...workspace, [confFile]: conf },
+						stdout: "",
+					});
+				});
+			}
+		});
+
+		describe("esm", () => {
+			const confFiles = ["yamllint.config.mjs", "yamllint.config.ts"];
+			const conf = [
+				"export default {",
+				"  extends: 'relaxed'",
+				"};",
+			];
+
+			for (const confFile of confFiles) {
+				test(confFile, async () => {
+					await run({
+						workspace,
+						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+					});
+					await run({
+						workspace: { ...workspace, [confFile]: conf },
+						stdout: "",
+					});
+				});
+			}
+		});
 	});
 
 	describe("parent config file", () => {
