@@ -50,6 +50,7 @@
     "fast-glob": "3.3.3",
     "iconv-lite": "0.7.0",
     "ignore": "7.0.5",
+    "recheck": "4.5.0",
     "yaml": "2.8.1",
     "yargs": "18.0.0",
     "zod": "4.1.12"

@@ -115,6 +115,7 @@ import z from "zod";
 import { LintProblem } from "../linter";
 
 import type { TokenCheckProps } from "./types";
+import { toRegExps } from "./common";
 
 
 
@@ -150,7 +151,7 @@ class Parent {
 
 export function* check({ fullConf: { locale }, conf, token, context }: TokenCheckProps<Conf, Context>) {
 	context.stack ??= [];
-	context.ignoredKeys ??= conf["ignored-keys"].map(k => new RegExp(k));
+	context.ignoredKeys ??= toRegExps(conf["ignored-keys"]);
 
 	if (
 		token.data.type === "block-map"

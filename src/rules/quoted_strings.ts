@@ -181,6 +181,7 @@ import { LintProblem } from "../linter";
 import { tokenGenerator } from "../parser";
 
 import type { TokenCheckProps } from "./types";
+import { toRegExps } from "./common";
 
 
 
@@ -338,8 +339,8 @@ function hasBackslashOnAtLeastOneLineEnding(token: Props["token"]) {
 export function* check({ conf, token, context }: Props) {
 	context.flowNestCount ??= 0;
 	context.regex ??= {
-		extraRequired: conf["extra-required"].map(x => new RegExp(x)),
-		extraAllowed: conf["extra-allowed"].map(x => new RegExp(x)),
+		extraRequired: toRegExps(conf["extra-required"]),
+		extraAllowed: toRegExps(conf["extra-allowed"]),
 	};
 
 	if (token.data.type === "flow-map-start" || token.data.type === "flow-seq-start") {
