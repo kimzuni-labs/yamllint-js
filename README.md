@@ -1,4 +1,4 @@
-# @kimzuni/yamllint
+# yamllint-js
 
 This project is an unofficial Node.js port of
 [adrienverge/yamllint](https://github.com/adrienverge/yamllint),
@@ -13,13 +13,13 @@ The original project is licensed under GPL-3.0, which also applies here.
 
 ```shell
 # npm
-npm install @kimzuni/yamllint
+npm install yamllint-js
 
 # yarn
-yarn add @kimzuni/yamllint
+yarn add yamllint-js
 
 # bun
-bun add @kimzuni/yamllint
+bun add yamllint-js
 ```
 
 

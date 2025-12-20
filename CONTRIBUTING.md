@@ -30,8 +30,8 @@ Clone the repository and install dependencies.
 1. Clone the repository:
 
     ```shell
-    git clone https://github.com/kimzuni-labs/yamllint.git
-    cd yamllint
+    git clone https://github.com/kimzuni-labs/yamllint-js.git
+    cd yamllint-js
     ```
 
 2. Install dependencies:
