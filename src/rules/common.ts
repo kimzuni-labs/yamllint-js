@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import recheck from "recheck";
+
 import type { Token } from "../parser";
 import { LintProblem } from "../linter";
 
@@ -122,3 +124,35 @@ export function getLineIndent(buffer: string, pointer: number) {
 	}
 	return content - start;
 }
+
+
+
+export function toRegExp(string: string) {
+	/*
+	 * Rejects known-dangerous patterns via {@link recheck}.
+	 * Not a complete guarantee (uses JS RegExp engine).
+	 */
+	const check = recheck.checkSync(string, "");
+	if (check.status !== "safe") {
+		throw new Error(`The provided string is unsafe RegExp pattern: ${string}`);
+	}
+	return new RegExp(string);
+}
+
+export const toRegExps = (() => {
+	const warnedPatterns = new Set<string>();
+	return function toRegExps(strings: string[]) {
+		const arr = [];
+		for (const string of strings) {
+			try {
+				arr.push(toRegExp(string));
+			} catch {
+				if (!warnedPatterns.has(string)) {
+					console.warn(`Ignoring unsafe RegExp pattern: ${string}`);
+					warnedPatterns.add(string);
+				}
+			}
+		}
+		return arr;
+	};
+})();
