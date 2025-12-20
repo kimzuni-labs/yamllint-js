@@ -7,9 +7,54 @@ This project is an unofficial Node.js port of
 
 The original project is licensed under GPL-3.0, which also applies here.
 
+---
+
+A linter for YAML files — an unofficial native Node.js port of Python yamllint.
+
+yamllint does not only check for syntax validity, but for weirdnesses like key
+repetition and cosmetic problems such as lines length, trailing spaces,
+indentation, etc.
+
+[![CI](https://github.com/kimzuni-labs/yamllint-js/actions/workflows/ci.yml/badge.svg)](https://github.com/kimzuni-labs/yamllint-js/actions/workflows/ci.yml)
+[![Publish](https://github.com/kimzuni-labs/yamllint-js/actions/workflows/publish.yml/badge.svg)](https://github.com/kimzuni-labs/yamllint-js/actions/workflows/publish.yml)
+[![NPM version](https://img.shields.io/npm/v/yamllint-js.svg)](https://www.npmjs.com/package/yamllint-js)
 
 
-## Installation
+
+## Why
+
+The goal of this project is to enable the use of upstream in Node.js-only
+environments without requiring Python, by providing a Node.js–native port
+that aims for 100% compatibility with the original Python implementation.
+
+In addition, several improvements were made during the porting process
+to enhance the tool itself, not just its integration with Node.js:
+
+1. Fix a new-lines issue (<https://github.com/adrienverge/yamllint/issues/475>)
+2. [Multiple configuration files](#configuration)
+3. Mitigated a ReDoS vulnerability
+
+
+
+## Documentation
+
+> [!NOTE]
+> This package does not include standalone documentation.
+> Instead, please consult the official yamllint (Python) documentation.
+
+<https://yamllint.readthedocs.io/>
+
+
+
+## Overview
+
+### Screenshot
+
+![yamllint-js screenshot](./images/screenshot.png)
+
+
+
+### Installation
 
 ```shell
 # npm
@@ -22,14 +67,145 @@ yarn add yamllint-js
 bun add yamllint-js
 ```
 
+or global installation:
+
+```shell
+npm install -g yamllint-js
+yarn global install yamllint-js
+bun add -g yamllint-js
+```
+
+Upstream is also packaged for all major operating systems,
+see installation examples (`dnf`, `apt-get`...)
+[in the official yamllint (Python) documentation](https://yamllint.readthedocs.io/en/stable/quickstart.html).
 
 
-## Example
 
-example
+### Usage
+
+> [!NOTE]
+> `yarn` or `bun` can be used as alternatives to `npx`.
+
+All `node_modules` directories are ignored.
+
+```shell
+# Lint one or more files
+npx yamllint my_file.yml my_other_file.yaml ...
+```
+
+```shell
+# Recursively lint all YAML files in a directory
+npx yamllint .
+```
+
+```shell
+# Use a pre-defined lint configuration
+npx yamllint -d relaxed file.yaml
+
+# Use a custom lint configuration
+npx yamllint -c /path/to/myconfig file-to-lint.yaml
+```
+
+```shell
+# Output a parsable format (for syntax checking in editors like Vim, emacs...)
+npx yamllint -f parsable file.yaml
+```
+
+[Read more in the complete official yamllint (Python) documentation!](https://yamllint.readthedocs.io/)
 
 
 
-## Options
+### Configuration
 
-options
+In addition to the upstream configuration format,
+JavaScript and TypeScript configuration files are also supported:
+
+- [Cosmiconfig default search places](https://github.com/cosmiconfig/cosmiconfig/blob/a5a842547c13392ebb89a485b9e56d9f37e3cbd3/src/defaults.ts#L12-L32):
+  `package.json` (`"yamllint"` field),  `.yamllintrc.json`,  `yamllint.config.ts`, etc.
+- [Upstream configuration format](https://github.com/adrienverge/yamllint/blob/73b9c0b54270076e2c76e2e6bfd428aa4203ed3a/yamllint/cli.py#L134):
+  `.yamllint`, `.yamllint.yaml`, `.yamllint.yml`, etc.
+
+Configuration can be easily defined with type hints, like:
+
+```typescript
+/** @type {import("yamllint-js").UserConfig")} */
+
+const config = {/* ... */};
+
+modules.exports = config;
+```
+
+or, with an explicit type:
+
+```typescript
+import { defineConfig, type UserConfig } from "yamllint-js";
+
+const config: UserConfig = {/* ... */};
+
+export default defineConfig(config);
+```
+
+[Read more in the Configuration page of the official yamllint (Python) documentation!](https://yamllint.readthedocs.io/en/stable/configuration.html)
+
+
+
+### Features
+
+Here is a yamllint configuration file example:
+
+```yaml
+extends: default
+
+rules:
+  # 80 chars should be enough, but don't fail if a line is longer
+  line-length:
+    max: 80
+    level: warning
+
+  # don't bother me with this rule
+  indentation: disable
+```
+
+Within a YAML file, special comments can be used to disable checks for a single line:
+
+```yaml
+This line is waaaaaaaaaay too long  # yamllint disable-line
+```
+
+or for a whole block:
+
+```yaml
+# yamllint disable rule:colons
+- Lorem       : ipsum
+  dolor       : sit amet,
+  consectetur : adipiscing elit
+# yamllint enable
+```
+
+Specific files can be ignored (totally or for some rules only) using a `.gitignore`-style pattern:
+
+```yaml
+# For all rules
+ignore: |
+  *.dont-lint-me.yaml
+  /bin/
+  !/bin/*.lint-me-anyway.yaml
+
+rules:
+  key-duplicates:
+    ignore: |
+      generated
+      *.template.yaml
+  trailing-spaces:
+    ignore: |
+      *.ignore-trailing-spaces.yaml
+      /ascii-art/*
+```
+
+[Read more in the complete official yamllint (Python) documentation!](https://yamllint.readthedocs.io/)
+
+
+
+## License
+
+[GPL version 3](./LICENSE)
