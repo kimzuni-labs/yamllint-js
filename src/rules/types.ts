@@ -33,21 +33,21 @@ export {
 
 
 
-export interface CommonCheckProps<Conf> {
+export interface CommonCheckProps<Conf, Context = unknown> {
 	fullConf: YamlLintConfig;
 	conf: Conf;
-}
-
-export interface LineCheckProps<Conf = unknown> extends CommonCheckProps<Conf> {
-	line: Line;
-}
-
-export interface TokenCheckProps<Conf = unknown, Context = unknown> extends CommonCheckProps<Conf> {
-	token: ExtractToken<Exclude<yaml.CST.Token["type"], typeof Token.ignoreTypes[number]>>;
 	context: Context;
 }
 
-export interface CommentCheckProps<Conf = unknown> extends CommonCheckProps<Conf> {
+export interface LineCheckProps<Conf = unknown, Context = unknown> extends CommonCheckProps<Conf, Context> {
+	line: Line;
+}
+
+export interface TokenCheckProps<Conf = unknown, Context = unknown> extends CommonCheckProps<Conf, Context> {
+	token: ExtractToken<Exclude<yaml.CST.Token["type"], typeof Token.ignoreTypes[number]>>;
+}
+
+export interface CommentCheckProps<Conf = unknown, Context = unknown> extends CommonCheckProps<Conf, Context> {
 	comment: Comment;
 }
 
@@ -60,9 +60,9 @@ export interface BaseRule {
 	VALIDATE?: (conf: Record<string, unknown>) => string;
 }
 
-export interface LineRule<Conf = unknown> extends BaseRule {
+export interface LineRule<Conf = unknown, Context = unknown> extends BaseRule {
 	TYPE: "line";
-	check: (props: LineCheckProps<Conf>) => G<LintProblem>;
+	check: (props: LineCheckProps<Conf, Context>) => G<LintProblem>;
 }
 
 export interface TokenRule<Conf = unknown, Context = unknown> extends BaseRule {
@@ -70,9 +70,9 @@ export interface TokenRule<Conf = unknown, Context = unknown> extends BaseRule {
 	check: (props: TokenCheckProps<Conf, Context>) => G<LintProblem>;
 }
 
-export interface CommentRule<Conf = unknown> extends BaseRule {
+export interface CommentRule<Conf = unknown, Context = unknown> extends BaseRule {
 	TYPE: "comment";
-	check: (props: CommentCheckProps<Conf>) => G<LintProblem>;
+	check: (props: CommentCheckProps<Conf, Context>) => G<LintProblem>;
 }
 
 export type Rule = LineRule | TokenRule | CommentRule;
