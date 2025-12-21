@@ -21,14 +21,14 @@ type CamelCaseKeys<T> = {
 type Level = Extract<AllLevel, "off" | "warn" | "error"> | 0 | 1 | 2;
 
 type UserConfigRules = {
-	[ID in RuleId]?: [
+	[ID in RuleId]?: Level | [
 		level: Level,
 		options?: CamelCaseKeys<IgnoreData & Partial<RuleConf<ID>>>,
 	]
 };
 
 export interface UserConfig extends CamelCaseKeys<IgnoreData> {
-	extends?: "default" | "relaxed";
+	extends?: "default" | "relaxed" | (string & {});
 	yamlFiles?: string | string[];
 	locale?: string;
 	rules?: Partial<UserConfigRules>;

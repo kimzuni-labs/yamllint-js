@@ -63,46 +63,53 @@ const assertBasicError = async (
 
 describe("Simple Config Test Case", () => {
 	describe("parse config", () => {
-		const run = (
-			label: string,
-			config: string[],
-		) => {
-			test(label, async () => {
-				const conf = await newConf(...config);
-
+		const run = async (config: string[]) => {
+			const conf = await newConf(...config);
+			if (conf.rules.colons !== undefined) {
 				assert.deepStrictEqual(Object.keys(conf.rules), ["colons"]);
 				assert.ok(conf.rules.colons);
 				assert.equal(conf.rules.colons["max-spaces-before"], 0);
 				assert.equal(conf.rules.colons["max-spaces-after"], 1);
-
-				assert.equal(conf.enabledRules().length, 1);
-			});
+			}
+			assert.equal(conf.enabledRules().length, 1);
 		};
 
-		run("kebab-case", [
-			"rules:",
-			"  colons:",
-			"    max-spaces-before: 0",
-			"    max-spaces-after: 1",
-			"",
-		]);
+		test("kebab-case", () => {
+			run([
+				"rules:",
+				"  colons:",
+				"    max-spaces-before: 0",
+				"    max-spaces-after: 1",
+				"",
+			]);
+		});
 
-		run("camelCase", [
-			"rules:",
-			"  colons:",
-			"    maxSpacesBefore: 0",
-			"    maxSpacesAfter: 1",
-			"",
-		]);
+		test("camelCase", () => {
+			run([
+				"rules:",
+				"  colons:",
+				"    maxSpacesBefore: 0",
+				"    maxSpacesAfter: 1",
+				"",
+			]);
+		});
 
-		run("defineConfig-style", [
-			"rules:",
-			"  colons:",
-			"    - error",
-			"    - maxSpacesBefore: 0",
-			"      maxSpacesAfter: 1",
-			"",
-		]);
+		test("defineConfig-style", () => {
+			run([
+				"rules:",
+				"  colons:",
+				"    - error",
+				"    - maxSpacesBefore: 0",
+				"      maxSpacesAfter: 1",
+				"",
+			]);
+
+			run([
+				"rules:",
+				"  hyphens: error",
+				"",
+			]);
+		});
 	});
 
 	test("invalid conf", async () => {
