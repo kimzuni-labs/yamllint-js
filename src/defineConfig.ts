@@ -28,7 +28,7 @@ type UserConfigRules = {
 };
 
 export interface UserConfig extends CamelCaseKeys<IgnoreData> {
-	extends?: "default" | "relaxed";
+	extends?: "default" | "relaxed" | (string & {});
 	yamlFiles?: string | string[];
 	locale?: string;
 	rules?: Partial<UserConfigRules>;
