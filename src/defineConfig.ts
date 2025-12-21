@@ -21,7 +21,7 @@ type CamelCaseKeys<T> = {
 type Level = Extract<AllLevel, "off" | "warn" | "error"> | 0 | 1 | 2;
 
 type UserConfigRules = {
-	[ID in RuleId]?: [
+	[ID in RuleId]?: Level | [
 		level: Level,
 		options?: CamelCaseKeys<IgnoreData & Partial<RuleConf<ID>>>,
 	]

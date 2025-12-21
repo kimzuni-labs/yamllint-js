@@ -173,17 +173,19 @@ export class YamlLintConfig {
 
 		for (const key in userRules) {
 			const userRule = userRules[key];
+			const level = validateLevel(userRule);
 			if (
 				userRule === false
 				|| userRule === "disable"
+				|| level === null
 				|| (
 					Array.isArray(userRule)
 					&& validateLevel(userRule[0]) === null
 				)
 			) {
 				this.#rules[key] = false;
-			} else if (Array.isArray(userRule)) {
-				const [ruleLevel, ruleConf] = userRule as unknown[];
+			} else if (level !== undefined || Array.isArray(userRule)) {
+				const [ruleLevel, ruleConf] = level ? [level] : userRule as unknown[];
 				this.#rules[key] = {
 					level: ruleLevel,
 					...(ruleConf && typeof ruleConf === "object" ? ruleConf : {}),
