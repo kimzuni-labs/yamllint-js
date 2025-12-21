@@ -1,8 +1,13 @@
 {
+	"release-type": "node",
 	"skip-github-release": true,
 	"bump-minor-pre-major": true,
 	"bump-patch-for-minor-pre-major": true,
 	"pull-request-title-pattern": "chore: release${component} ${version}",
+	"packages": {
+		".": {
+		}
+	},
 	"changelog-sections": [
 		{ "type": "port", "section": "🚚 Porting", "hidden": false },
 		{ "type": "feat", "section": "✨ Features", "hidden": false },

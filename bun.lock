@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@kimzuni/yamllint",
+      "name": "yamllint-js",
       "dependencies": {
         "cosmiconfig": "9.0.0",
         "fast-glob": "3.3.3",

@@ -50,7 +50,7 @@ jobs:
       - name: Publish to npm
         id: publish
         run: |
-          npm publish --access=public --tag "${{ steps.vars.outputs.publish_tag }}"
+          npm publish --tag "${{ steps.vars.outputs.publish_tag }}"
 
       - name: Generate Release Notes
         uses: softprops/action-gh-release@v2

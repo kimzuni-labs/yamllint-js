@@ -30,8 +30,8 @@ Clone the repository and install dependencies.
 1. Clone the repository:
 
     ```shell
-    git clone https://github.com/kimzuni-labs/yamllint.git
-    cd yamllint
+    git clone https://github.com/kimzuni-labs/yamllint-js.git
+    cd yamllint-js
     ```
 
 2. Install dependencies:
@@ -46,6 +46,7 @@ This project uses the following tools to maintain code quality:
 
 - [ESLint](http://eslint.org/) (with [typescript-eslint](https://typescript-eslint.io/) and [ESLint Stylistic](https://eslint.style/))
 - [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)
+- [yamllint-js](https://github.com/kimzuni-labs/yamllint-js)
 
 You can run all lint checks with:
 
@@ -58,6 +59,7 @@ Or run them individually:
 ```shell
 npm run lint:eslint
 npm run lint:markdown
+npm run lint:yaml
 ```
 
 ## 🧪 Testing

@@ -21,7 +21,9 @@
 import assert from "node:assert/strict";
 import { describe, test, before, after } from "node:test";
 import { spawn } from "node:child_process";
+import fs from "node:fs/promises";
 import path from "node:path";
+import * as tsdown from "tsdown";
 
 import { APP } from "../src/constants";
 import { splitlines } from "../src/utils";
@@ -33,7 +35,8 @@ import {
 
 
 
-const NODE = path.basename(process.execPath) === "node" ? path.join(import.meta.dirname, "..", "node_modules", ".bin", "tsx") : process.execPath;
+const dist = path.join(process.cwd(), await fs.mkdtemp("dist-"));
+const cli = path.join(dist, "cli.mjs");
 
 function run(...args: string[]) {
 	return new Promise<{
@@ -44,7 +47,7 @@ function run(...args: string[]) {
 		delete env.GITHUB_ACTIONS;
 		delete env.GITHUB_WORKFLOW;
 
-		const child = spawn(NODE, ["src/cli.ts", ...args], {
+		const child = spawn(process.execPath, [cli, ...args], {
 			stdio: "pipe",
 			env,
 		});
@@ -65,6 +68,17 @@ function run(...args: string[]) {
 	});
 }
 
+const build = () => tsdown.build({
+	config: false,
+	clean: true,
+	dts: false,
+	entry: "./src/cli.ts",
+	outDir: dist,
+	copy: "src/conf",
+	format: "esm",
+	logLevel: "silent",
+});
+
 
 
 describe("Module Test Case", () => {
@@ -72,7 +86,10 @@ describe("Module Test Case", () => {
 	let cleanup: BuildTempWorkspaceReturnType["cleanup"] = async () => {
 		// pass
 	};
-	after(() => cleanup());
+	after(() => Promise.all([
+		cleanup(),
+		fs.rm(dist, { recursive: true }),
+	]));
 	before(async () => {
 		const temp = await buildTempWorkspace({
 			// file with only one warning
@@ -83,6 +100,14 @@ describe("Module Test Case", () => {
 		});
 		resolve = temp.resolve;
 		cleanup = temp.cleanup;
+
+		try {
+			// eslint-disable-next-line no-console
+			console.log("building...");
+			await build();
+		} catch {
+			throw new Error("failed");
+		}
 	});
 
 	const check = (output: string, filepath: string, problems: string[]) => {

@@ -27,11 +27,11 @@ body:
   - id: what-package-version
     type: input
     attributes:
-      label: What version of `@kimzuni/yamllint` are you using?
+      label: What version of `yamllint-js` are you using?
       description: |
         Copy the output of:
-        - node: `npm ls @kimzuni/yamllint`
-        - bun: `bun pm ls | grep "@kimzuni/yamllint"`
+        - node: `npm ls yamllint-js`
+        - bun: `bun pm ls | grep "yamllint-js"`
       placeholder: 0.0.0
   - id: what-steps
     type: textarea

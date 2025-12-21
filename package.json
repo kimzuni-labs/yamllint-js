@@ -1,5 +1,5 @@
 {
-  "name": "@kimzuni/yamllint",
+  "name": "yamllint-js",
   "description": "A linter for YAML files — an unofficial native Node.js port of Python yamllint.",
   "version": "0.0.0",
   "license": "GPL-3.0-or-later",
@@ -18,9 +18,10 @@
   "scripts": {
     "test": "NODE_ENV=test tsx --test",
     "test:all": "NODE_ENV=test tsx --test tests/*.test.ts tests/rules/*.test.ts",
-    "lint": "markdownlint-cli2 && eslint .",
+    "lint": "markdownlint-cli2 && npm run lint:yaml && eslint .",
     "lint:eslint": "eslint .",
     "lint:markdown": "markdownlint-cli2",
+    "lint:yaml": "tsx src/cli.ts -c yamllint.self.config.js .",
     "build": "tsdown",
     "local:test:matrix": "# bun test && nvm use v20 && npm run test:all && nvm use v22 && npm run test && nvm use v24 && npm run test && bun lint"
   },
@@ -37,12 +38,14 @@
     "yamllint",
     "port"
   ],
+  "bin": {
+    "yamllint": "dist/cli.mjs"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     }
   },
   "dependencies": {
