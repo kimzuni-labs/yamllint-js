@@ -11,10 +11,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kimzuni-labs/yamllint.git"
+    "url": "git+https://github.com/kimzuni-labs/yamllint-js.git"
   },
-  "homepage": "https://github.com/kimzuni-labs/yamllint",
-  "bugs": "https://github.com/kimzuni-labs/yamllint/issues",
+  "homepage": "https://github.com/kimzuni-labs/yamllint-js",
+  "bugs": "https://github.com/kimzuni-labs/yamllint-js/issues",
   "scripts": {
     "test": "NODE_ENV=test tsx --test",
     "test:all": "NODE_ENV=test tsx --test tests/*.test.ts tests/rules/*.test.ts",
