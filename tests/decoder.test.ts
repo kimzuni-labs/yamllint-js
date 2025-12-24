@@ -34,6 +34,7 @@ import {
 	encodingDetectable,
 	tempWorkspace,
 	tempWorkspaceWithFilesInManyCodecs,
+	envWorkspace,
 	consoleWorkspace,
 } from "./common";
 
@@ -404,15 +405,11 @@ describe("Decoder Test Case", () => {
 
 		const { warn } = await consoleWorkspace([
 			"warn",
-		], () => {
-			const env = { ...process.env };
-			try {
-				for (const nonstandard_encoding of NONSTANDARD_ENCODINGS) {
-					process.env.YAMLLINT_FILE_ENCODING = nonstandard_encoding;
-					assert.equal(decoder.detectEncoding(RANDOM_BYTES), nonstandard_encoding);
-				}
-			} finally {
-				process.env = env;
+		], async () => {
+			for (const YAMLLINT_FILE_ENCODING of NONSTANDARD_ENCODINGS) {
+				await envWorkspace({ YAMLLINT_FILE_ENCODING }, () => {
+					assert.equal(decoder.detectEncoding(RANDOM_BYTES), YAMLLINT_FILE_ENCODING);
+				});
 			}
 		});
 		assert.ok(warn);

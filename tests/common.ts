@@ -278,24 +278,15 @@ export async function runContext(...options: string[] | [{
 		env = {},
 	} = options.length === 0 || typeof options[0] === "string" ? { args: options as string[] } : options[0];
 
+	const logs = ["log", "error"] satisfies ConsoleLevel[];
 	const {
 		data: returncode,
 		log: stdout,
 		error: stderr,
-	} = await consoleWorkspace([
-		"log",
-		"error",
-	], async () => {
+	} = await consoleWorkspace(logs, () => envWorkspace(env, async () => {
 		const stdin = process.stdin;
-		const processEnv = { ...process.env };
 
 		const override = () => {
-			for (const key in env) {
-				process.env[key] = env[key];
-			}
-			if (!("GITHUB_ACTIONS" in env)) process.env.GITHUB_ACTIONS = undefined;
-			if (!("GITHUB_WORKFLOW" in env)) process.env.GITHUB_WORKFLOW = undefined;
-
 			if (inputData !== undefined) {
 				// @ts-expect-error: ts(2322)
 				process.stdin = Readable.from(inputData);
@@ -303,7 +294,6 @@ export async function runContext(...options: string[] | [{
 		};
 
 		const restore = () => {
-			process.env = processEnv;
 			if (inputData !== undefined) {
 				process.stdin = stdin;
 			}
@@ -326,13 +316,26 @@ export async function runContext(...options: string[] | [{
 		}
 
 		return returncode;
-	});
+	}));
 
 	return {
 		returncode,
 		stdout,
 		stderr,
 	};
+}
+
+export async function envWorkspace<T>(
+	env: Record<string, string | undefined>,
+	fn: () => T | Promise<T>,
+) {
+	const processEnv = process.env;
+	try {
+		process.env = env;
+		return await fn();
+	} finally {
+		process.env = processEnv;
+	}
 }
 
 export async function withTTYWorkspace<T>(
