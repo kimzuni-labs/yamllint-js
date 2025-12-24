@@ -3,63 +3,36 @@ name: CI
 
 on:
   workflow_dispatch:
+  push:
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
-    paths:
-      - "**/*.ts"
-      - "**/*.md"
-      - "bun.lock"
-      - "package.json"
-      - "tsconfig.json"
-      - ".markdownlint-cli2.jsonc"
-      - "!dist/**"
-      - "!node_modules/**"
-      - "!CHANGELOG.md"
+    branches:
+      - main
 
 jobs:
   node:
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request'
+      || github.event.pull_request.draft == false
     strategy:
       matrix:
-        node-version:
+        version:
           - 20
           - 22
           - 24
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm run test:all
-
+    uses: kimzuni-labs/workflows/.github/workflows/node-ci.yml@main
+    with:
+      node-version: ${{ matrix.version }}
+      test-mode: all
+      lint: false
   bun:
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Install dependencies
-        run: bun ci
-
-      - name: Run tests
-        run: bun test
-
-      - name: Run lints
-        run: bun run lint
+    if: >
+      github.event_name != 'pull_request'
+      || github.event.pull_request.draft == false
+    permissions:
+      id-token: write
+      contents: read
+    uses: kimzuni-labs/workflows/.github/workflows/bun-ci.yml@main
+    with:
+      test-mode: unit
+      lint: true
+      upload-codecov: true
