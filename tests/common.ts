@@ -236,7 +236,7 @@ export const ruleTestCase = (id: string) => async (...config: string[] | [Record
 			expectedProblems.push(new linter.LintProblem(value[0], value[1], undefined, ruleId));
 		}
 
-		expectedProblems.sort((a, b) => (a.line !== b.line ? a.line - b.line : a.column - b.column));
+		expectedProblems.sort((a, b) => (a.lt(b) ? -1 : 1));
 		const result = linter.run(source.join("\n"), conf);
 		for await (const x of result) {
 			assert.ok(x.eq(expectedProblems.shift()), util.inspect(x));
@@ -278,65 +278,60 @@ export async function runContext(...options: string[] | [{
 		env = {},
 	} = options.length === 0 || typeof options[0] === "string" ? { args: options as string[] } : options[0];
 
-	type Key = typeof keys[number];
-	const keys = ["log", "error"] as const;
-	const bak = {} as Record<Key, typeof console.log>;
-	const data = { log: "", error: "" } satisfies Record<Key, string>;
-	const stdin = process.stdin;
-	const processEnv = { ...process.env };
+	const {
+		data: returncode,
+		log: stdout,
+		error: stderr,
+	} = await consoleWorkspace([
+		"log",
+		"error",
+	], async () => {
+		const stdin = process.stdin;
+		const processEnv = { ...process.env };
 
-	const genLogFn = (key: Key) => (...args: unknown[]) => {
-		const text = args.map(String).join(" ");
-		data[key] += text + "\n";
-	};
+		const override = () => {
+			for (const key in env) {
+				process.env[key] = env[key];
+			}
+			if (!("GITHUB_ACTIONS" in env)) process.env.GITHUB_ACTIONS = undefined;
+			if (!("GITHUB_WORKFLOW" in env)) process.env.GITHUB_WORKFLOW = undefined;
 
-	const override = () => {
-		for (const key in env) {
-			process.env[key] = env[key];
-		}
-		if (!("GITHUB_ACTIONS" in env)) process.env.GITHUB_ACTIONS = undefined;
-		if (!("GITHUB_WORKFLOW" in env)) process.env.GITHUB_WORKFLOW = undefined;
+			if (inputData !== undefined) {
+				// @ts-expect-error: ts(2322)
+				process.stdin = Readable.from(inputData);
+			}
+		};
 
-		if (inputData !== undefined) {
-			// @ts-expect-error: ts(2322)
-			process.stdin = Readable.from(inputData);
-		}
-		for (const key of keys) {
-			bak[key] = console[key];
-			console[key] = genLogFn(key);
-		}
-	};
+		const restore = () => {
+			process.env = processEnv;
+			if (inputData !== undefined) {
+				process.stdin = stdin;
+			}
+		};
 
-	const restore = () => {
-		process.env = processEnv;
-		if (inputData !== undefined) {
-			process.stdin = stdin;
+		let returncode: number | null;
+		if (typeof Bun === "undefined" && inputData !== undefined) {
+			InputDataWarn();
+			returncode = null;
+		} else {
+			const bak = process.cwd();
+			try {
+				override();
+				if (chdir) process.chdir(chdir);
+				returncode = await cli.run(args);
+			} finally {
+				process.chdir(bak);
+				restore();
+			}
 		}
-		for (const key of keys) {
-			console[key] = bak[key];
-		}
-	};
 
-	let returncode: number | null;
-	if (typeof Bun === "undefined" && inputData !== undefined) {
-		InputDataWarn();
-		returncode = null;
-	} else {
-		const bak = process.cwd();
-		try {
-			override();
-			if (chdir) process.chdir(chdir);
-			returncode = await cli.run(args);
-		} finally {
-			process.chdir(bak);
-			restore();
-		}
-	}
+		return returncode;
+	});
 
 	return {
 		returncode,
-		stdout: data.log,
-		stderr: data.error,
+		stdout,
+		stderr,
 	};
 }
 
@@ -361,5 +356,46 @@ export async function noTTYWorkspace(
 		await fn();
 	} finally {
 		process.stdout.isTTY = bak;
+	}
+}
+
+type ConsoleLevel = "log" | "debug" | "info" | "warn" | "error";
+export async function consoleWorkspace<
+	L extends ConsoleLevel[],
+	T,
+>(
+	levels: L,
+	fn: () => T | Promise<T>,
+) {
+	const data = levels.reduce((acc, cur) => ({ ...acc, [cur]: "" }), {} as Record<L[number], string>);
+	const bak = {} as Record<ConsoleLevel, typeof console.log>;
+
+	const genLogFn = (level: L[number]) => (...args: unknown[]) => {
+		const text = args.map(String).join(" ");
+		data[level] += text + "\n";
+	};
+
+	const override = () => {
+		for (const level of levels) {
+			bak[level] = console[level];
+			console[level] = genLogFn(level);
+		}
+	};
+
+	const restore = () => {
+		for (const level of levels) {
+			console[level] = bak[level];
+		}
+	};
+
+	try {
+		override();
+		const result = await fn();
+		return {
+			data: result,
+			...data,
+		};
+	} finally {
+		restore();
 	}
 }

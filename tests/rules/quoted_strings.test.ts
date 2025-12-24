@@ -18,9 +18,41 @@
 
 /* eslint-disable @typescript-eslint/no-floating-promises, @stylistic/line-comment-position */
 
+import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { ruleTestCase, assertConfigError } from "../common";
+import { ruleTestCase, consoleWorkspace, assertConfigError } from "../common";
+
+
+
+describe("Options Test Case", () => {
+	const conf = ruleTestCase("quoted-strings");
+
+	describe("extras", () => {
+		test("unsafe pattern", async () => {
+			const { warn } = await consoleWorkspace(["warn"], async () => {
+				const check = await conf(
+					"quoted-strings:",
+					"  required: only-when-needed",
+					"  extra-allowed:",
+					"    - '^(b|b)*$'",
+					"  extra-required:",
+					"    - '^(b|b)*$'",
+					"",
+				);
+
+				await check([
+					"---",
+					"a: b",
+					"",
+				], [
+				]);
+			});
+
+			assert.equal(warn.trimEnd(), "Ignoring unsafe RegExp pattern: ^(b|b)*$");
+		});
+	});
+});
 
 
 

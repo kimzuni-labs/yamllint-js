@@ -34,6 +34,7 @@ import {
 	encodingDetectable,
 	tempWorkspace,
 	tempWorkspaceWithFilesInManyCodecs,
+	consoleWorkspace,
 } from "./common";
 
 
@@ -396,24 +397,24 @@ describe("Decoder Test Case", () => {
 
 
 
-	test("detect encoding with env var override", () => {
+	test("detect encoding with env var override", async () => {
 		// These three encodings were chosen randomly.
 		const NONSTANDARD_ENCODINGS = ["iso8859_6", "iso8859_11", "euc_jis_2004"];
 		const RANDOM_BYTES = B("\x90Jg\xd9rS\x95\xd6[\x1d\x8b\xc4Ir\x0fC");
 
-		let warn = false;
-		const bak = console.warn;
-		const env = { ...process.env };
-		console.warn = () => warn = true;
-		try {
-			for (const nonstandard_encoding of NONSTANDARD_ENCODINGS) {
-				process.env.YAMLLINT_FILE_ENCODING = nonstandard_encoding;
-				assert.equal(decoder.detectEncoding(RANDOM_BYTES), nonstandard_encoding);
+		const { warn } = await consoleWorkspace([
+			"warn",
+		], () => {
+			const env = { ...process.env };
+			try {
+				for (const nonstandard_encoding of NONSTANDARD_ENCODINGS) {
+					process.env.YAMLLINT_FILE_ENCODING = nonstandard_encoding;
+					assert.equal(decoder.detectEncoding(RANDOM_BYTES), nonstandard_encoding);
+				}
+			} finally {
+				process.env = env;
 			}
-		} finally {
-			process.env = env;
-			console.warn = bak;
-		}
+		});
 		assert.ok(warn);
 	});
 
