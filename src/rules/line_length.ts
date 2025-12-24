@@ -102,7 +102,6 @@
  */
 
 import z from "zod";
-import yaml from "yaml";
 
 import { tokenGenerator } from "../parser";
 import { LintProblem } from "../linter";
@@ -131,24 +130,18 @@ export type Conf = z.infer<typeof CONF>;
 function checkInlineMapping(line: LineCheckProps["line"]): boolean {
 	const content = line.content;
 	const loader = tokenGenerator(content);
-	try {
-		let t1: ReturnType<typeof loader.next>["value"] | null = null;
-		while ((t1 = loader.next().value ?? null) !== null) {
-			if (t1.data.type === "block-map") {
-				let t2: ReturnType<typeof loader.next>["value"] | null = null;
-				while ((t2 = loader.next().value ?? null) !== null) {
-					if (t2.data.type === "map-value-ind") {
-						const token = loader.next().value;
-						if (token?.resolve) {
-							return !content.slice(token.startMark.column - 1).includes(" ");
-						}
+	let t1: ReturnType<typeof loader.next>["value"] | null = null;
+	while ((t1 = loader.next().value ?? null) !== null) {
+		if (t1.data.type === "block-map") {
+			let t2: ReturnType<typeof loader.next>["value"] | null = null;
+			while ((t2 = loader.next().value ?? null) !== null) {
+				if (t2.data.type === "map-value-ind") {
+					const token = loader.next().value;
+					if (token?.resolve) {
+						return !content.slice(token.startMark.column - 1).includes(" ");
 					}
 				}
 			}
-		}
-	} catch (e) {
-		if (!(e instanceof yaml.YAMLError)) {
-			throw e;
 		}
 	}
 	return false;
