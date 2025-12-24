@@ -335,25 +335,25 @@ export async function runContext(...options: string[] | [{
 	};
 }
 
-export async function withTTYWorkspace(
-	fn: () => void | Promise<void>,
+export async function withTTYWorkspace<T>(
+	fn: () => T | Promise<T>,
 ) {
 	const bak = process.stdout.isTTY;
 	try {
 		process.stdout.isTTY = true;
-		await fn();
+		return await fn();
 	} finally {
 		process.stdout.isTTY = bak;
 	}
 }
 
-export async function noTTYWorkspace(
-	fn: () => void | Promise<void>,
+export async function noTTYWorkspace<T>(
+	fn: () => T | Promise<T>,
 ) {
 	const bak = process.stdout.isTTY;
 	try {
 		process.stdout.isTTY = false;
-		await fn();
+		return await fn();
 	} finally {
 		process.stdout.isTTY = bak;
 	}
