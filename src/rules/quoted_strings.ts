@@ -298,13 +298,7 @@ function quotesAreNeeded(token: Props["token"], isInsideAFlow: boolean) {
 	 * block-map, scalar(key), map-value-ind)
 	 */
 	for (let i = 0; i < 4; i++) loader.next();
-
-	let scalar;
-	try {
-		scalar = loader.next().value;
-	} catch {
-		return true;
-	}
+	const scalar = loader.next().value;
 
 	if (
 		scalar?.resolve?.type === "PLAIN"

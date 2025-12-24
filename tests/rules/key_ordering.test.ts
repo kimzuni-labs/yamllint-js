@@ -18,9 +18,10 @@
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
+import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { ruleTestCase } from "../common";
+import { ruleTestCase, consoleWorkspace } from "../common";
 
 
 
@@ -271,32 +272,55 @@ describe("Key Ordering Test Case", () => {
 		});
 	});
 
-	test("ignored keys", async () => {
-		const check = await conf(
-			"key-ordering:",
-			"  ignored-keys: ['n(a|o)me', '^b']",
-		);
+	describe("ignored keys", () => {
+		test("safe patterns", async () => {
+			const check = await conf(
+				"key-ordering:",
+				"  ignored-keys: ['n(a|o)me', '^b']",
+			);
 
-		await check([
-			"---",
-			"a:",
-			"b:",
-			"c:",
-			"name: ignored",
-			"first-name: ignored",
-			"nome: ignored",
-			"gnomes: ignored",
-			"d:",
-			"e:",
-			"boat: ignored",
-			".boat: ERROR",
-			"call: ERROR",
-			"f:",
-			"g:",
-			"",
-		], [
-			[12, 1],
-			[13, 1],
-		]);
+			await check([
+				"---",
+				"a:",
+				"b:",
+				"c:",
+				"name: ignored",
+				"first-name: ignored",
+				"nome: ignored",
+				"gnomes: ignored",
+				"d:",
+				"e:",
+				"boat: ignored",
+				".boat: ERROR",
+				"call: ERROR",
+				"f:",
+				"g:",
+				"",
+			], [
+				[12, 1],
+				[13, 1],
+			]);
+		});
+
+		test("unsafe patterns", async () => {
+			const { warn } = await consoleWorkspace(["warn"], async () => {
+				const check = await conf(
+					"key-ordering:",
+					"  ignored-keys:",
+					"    - '^(a|a)*$'",
+					"    - '^(a|a)*$'",
+					"",
+				);
+
+				await check([
+					"---",
+					"a: b",
+					"",
+				], [
+				]);
+			});
+
+			assert.equal(warn.trimEnd(), "Ignoring unsafe RegExp pattern: ^(a|a)*$");
+		});
 	});
 });

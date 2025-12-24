@@ -1,2 +1,8 @@
 [test]
 root = "./tests"
+coverageSkipTestFiles = true
+coveragePathIgnorePatterns = [
+	"src/main.ts",
+	"**/tests/**",
+	"**/tmp/**",
+]

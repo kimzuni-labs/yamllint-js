@@ -8,7 +8,7 @@ export default defineConfig([
 	{
 		clean: true,
 		entry: [
-			"./src/cli.ts",
+			"./src/main.ts",
 			"./src/index.ts",
 		],
 		copy: [

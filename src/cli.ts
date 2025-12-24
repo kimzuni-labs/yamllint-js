@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
  * Copyright (C) 2016 Adrien Vergé
  * Copyright (C) 2025 kimzuni
@@ -401,13 +399,4 @@ export async function run(argv = hideBin(process.argv)): Promise<number> {
 		returnCode = 0;
 	}
 	return returnCode;
-}
-
-
-
-const execfile = await fs.realpath(process.argv.at(1) ?? "").catch(() => "");
-const filepath = await fs.realpath(import.meta.filename).catch(() => "");
-if (execfile && execfile === filepath) {
-	const returncode = await run();
-	process.exit(returncode);
 }

@@ -36,7 +36,7 @@ import {
 
 
 const dist = path.join(process.cwd(), await fs.mkdtemp("dist-"));
-const cli = path.join(dist, "cli.mjs");
+const cli = path.join(dist, "main.mjs");
 
 function run(...args: string[]) {
 	return new Promise<{
@@ -72,7 +72,7 @@ const build = () => tsdown.build({
 	config: false,
 	clean: true,
 	dts: false,
-	entry: "./src/cli.ts",
+	entry: "./src/main.ts",
 	outDir: dist,
 	copy: "src/conf",
 	format: "esm",

@@ -304,13 +304,6 @@ export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get
 
 
 
-export const isExecutableFile = (() => {
-	const executablePattern = /\.[cm]?[jt]s$/;
-	return function isExecutableFile(filepath: string) {
-		return executablePattern.test(filepath);
-	};
-})();
-
 export const loadConfigFile = (() => {
 	const loadYAML: Loader = async function loadYAML(filepath) {
 		const content = decoder.autoDecode(await fs.readFile(filepath));
