@@ -18,6 +18,7 @@ indentation, etc.
 [![CI](https://github.com/kimzuni-labs/yamllint-js/actions/workflows/ci.yml/badge.svg)](https://github.com/kimzuni-labs/yamllint-js/actions/workflows/ci.yml)
 [![Publish](https://github.com/kimzuni-labs/yamllint-js/actions/workflows/publish.yml/badge.svg)](https://github.com/kimzuni-labs/yamllint-js/actions/workflows/publish.yml)
 [![NPM version](https://img.shields.io/npm/v/yamllint-js.svg)](https://www.npmjs.com/package/yamllint-js)
+[![codecov](https://codecov.io/gh/kimzuni-labs/yamllint-js/graph/badge.svg?token=LU39PGBWUF)](https://codecov.io/gh/kimzuni-labs/yamllint-js)
 
 
 
