@@ -137,9 +137,8 @@ function checkInlineMapping(line: LineCheckProps["line"]): boolean {
 			while ((t2 = loader.next().value ?? null) !== null) {
 				if (t2.data.type === "map-value-ind") {
 					const token = loader.next().value;
-					if (token?.resolve) {
-						return !content.slice(token.startMark.column - 1).includes(" ");
-					}
+					if (!token?.resolve) continue;
+					return !content.slice(token.startMark.column - 1).includes(" ");
 				}
 			}
 		}
