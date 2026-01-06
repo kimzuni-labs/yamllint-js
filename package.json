@@ -18,6 +18,7 @@
   "scripts": {
     "test": "NODE_ENV=test tsx --test",
     "test:all": "NODE_ENV=test tsx --test tests/*.test.ts tests/rules/*.test.ts",
+    "test:coverage": "bun test --coverage --coverage-reporter=lcov",
     "lint": "markdownlint-cli2 && npm run lint:yaml && eslint .",
     "lint:eslint": "eslint .",
     "lint:markdown": "markdownlint-cli2",
