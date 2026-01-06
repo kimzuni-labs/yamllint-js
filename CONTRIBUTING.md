@@ -12,9 +12,9 @@ Please follow this guide to help ensure smooth collaboration.
 
 This project uses [Bun](https://bun.sh/) for a faster runtime during development and deployment.
 
-However, **contributors do not need to use Bun** — Node.js or other JavaScript runtimes are fully supported.
+However, **contributors do not need to use Bun** — Node.js is fully supported.
 
-If you prefer Node.js, make sure you’re using **v22.6.0 or higher**.
+If you prefer Node.js, make sure you’re using **v20 or higher**.
 
 > [!NOTE]
 > You can use **Bun** instead of **npm** unless stated otherwise.
@@ -67,6 +67,8 @@ npm run lint:yaml
 Make sure your changes work as expected.
 
 ```shell
+npm run test
+# or (for node v20)
 npm run test:all
 # or (faster)
 bun test

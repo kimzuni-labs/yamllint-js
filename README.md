@@ -85,7 +85,8 @@ see installation examples (`dnf`, `apt-get`...)
 ### Usage
 
 > [!NOTE]
-> `yarn` or `bun` can be used as alternatives to `npx`.
+> `yarn` or `bun` can be used as alternatives to `npx`,
+> and `npx` can be omitted if the package is installed globally.
 
 All `node_modules` directories are ignored.
 

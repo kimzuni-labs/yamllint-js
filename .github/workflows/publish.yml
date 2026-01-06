@@ -7,17 +7,31 @@ on:
       - published
 
 jobs:
-  parse-semver:
-    uses: kimzuni-labs/workflows/.github/workflows/parse-semver.yml@main
-    with:
-      tag_name: ${{ github.event.release.tag_name }}
-      invalid_semver_policy: pass
   publish:
-    uses: kimzuni-labs/workflows/.github/workflows/npm-publish-bun.yml@main
-    needs:
-      - parse-semver
-    if: fromJSON(needs.parse-semver.outputs.is_valid_semver)
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
-    with:
-      publish-tag: ${{ needs.parse-semver.outputs.publish_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+          registries: |
+            https://registry.npmjs.org
+
+      - name: Update npm
+        run: bun add -g npm@latest
+
+      - name: Install dependencies
+        run: bun ci
+
+      - name: Build
+        working-directory: ${{ matrix.path }}
+        run: bun run build --if-present
+
+      - name: Publish
+        working-directory: ${{ matrix.path }}
+        run: npm publish --access public

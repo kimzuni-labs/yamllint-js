@@ -11,30 +11,11 @@ on:
       - main
 
 jobs:
-  node:
-    if: >
-      github.event_name != 'pull_request'
-      || github.event.pull_request.draft == false
-    strategy:
-      matrix:
-        version:
-          - 20
-          - 22
-          - 24
-    uses: kimzuni-labs/workflows/.github/workflows/node-ci.yml@main
-    with:
-      node-version: ${{ matrix.version }}
-      test-mode: all
-      lint: false
-  bun:
+  tests:
     if: >
       github.event_name != 'pull_request'
       || github.event.pull_request.draft == false
     permissions:
       id-token: write
       contents: read
-    uses: kimzuni-labs/workflows/.github/workflows/bun-ci.yml@main
-    with:
-      test-mode: unit
-      lint: true
-      upload-codecov: true
+    uses: kimzuni-labs/workflows/.github/workflows/nodejs-lts-and-bun-ci.yml@main
