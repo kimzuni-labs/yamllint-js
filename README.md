@@ -32,7 +32,7 @@ In addition, several improvements were made during the porting process
 to enhance the tool itself, not just its integration with Node.js:
 
 1. Fix a new-lines issue (<https://github.com/adrienverge/yamllint/issues/475>)
-2. [Multiple configuration files](#configuration)
+2. Support for JavaScript/TypeScript [configuration files](#configuration)
 3. Mitigated a ReDoS vulnerability
 
 
@@ -52,6 +52,8 @@ to enhance the tool itself, not just its integration with Node.js:
 ### Screenshot
 
 ![yamllint-js screenshot](./images/screenshot.png)
+
+![yamllint.config.mjs screenshot](./images/yamllint.config.mjs.png)
 
 
 
@@ -122,10 +124,10 @@ npx yamllint -f parsable file.yaml
 In addition to the upstream configuration format,
 JavaScript and TypeScript configuration files are also supported:
 
-- [Cosmiconfig default search places](https://github.com/cosmiconfig/cosmiconfig/blob/a5a842547c13392ebb89a485b9e56d9f37e3cbd3/src/defaults.ts#L12-L32):
-  `package.json` (`"yamllint"` field),  `.yamllintrc.json`,  `yamllint.config.ts`, etc.
 - [Upstream configuration format](https://github.com/adrienverge/yamllint/blob/73b9c0b54270076e2c76e2e6bfd428aa4203ed3a/yamllint/cli.py#L134):
   `.yamllint`, `.yamllint.yaml`, `.yamllint.yml`, etc.
+- [Cosmiconfig default search places](https://github.com/cosmiconfig/cosmiconfig/blob/a5a842547c13392ebb89a485b9e56d9f37e3cbd3/src/defaults.ts#L12-L32):
+  `package.json` (`"yamllint"` field),  `.yamllintrc.json`,  `yamllint.config.ts`, etc.
 
 Configuration can be easily defined with type hints, like:
 
