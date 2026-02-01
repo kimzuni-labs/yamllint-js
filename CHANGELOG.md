@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/kimzuni-labs/yamllint-js/compare/v0.1.0...v0.1.1) (2026-02-01)
+
+
+### ♻️ Code Refactoring
+
+* adjust condition for coverage ([a92689d](https://github.com/kimzuni-labs/yamllint-js/commit/a92689de49809aa81ebb81a447da9671a097a48d))
+* extract CLI entrypoint logic to main.ts ([a92689d](https://github.com/kimzuni-labs/yamllint-js/commit/a92689de49809aa81ebb81a447da9671a097a48d))
+
 ## 0.1.0 (2025-12-21)
 
 
