@@ -29,9 +29,7 @@ jobs:
         run: bun ci
 
       - name: Build
-        working-directory: ${{ matrix.path }}
         run: bun run build --if-present
 
       - name: Publish
-        working-directory: ${{ matrix.path }}
         run: npm publish --access public
