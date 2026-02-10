@@ -97,6 +97,14 @@ export async function assertConfigError(
 
 
 
+export async function arrayFromAsync<T>(items: AsyncIterable<T>) {
+	const arr = [];
+	for await (const item of items) arr.push(item);
+	return arr;
+}
+
+
+
 /**
  * Returns True if encoding can be detected after string is encoded
  *
@@ -362,7 +370,7 @@ export async function noTTYWorkspace<T>(
 	}
 }
 
-type ConsoleLevel = "log" | "debug" | "info" | "warn" | "error";
+export type ConsoleLevel = "log" | "debug" | "info" | "warn" | "error";
 export async function consoleWorkspace<
 	L extends ConsoleLevel[],
 	T,

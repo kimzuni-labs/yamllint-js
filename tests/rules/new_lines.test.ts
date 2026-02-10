@@ -211,14 +211,6 @@ describe("New Lines Test Case", () => {
 			[1, 4],
 		]);
 
-
-
-		/*
-		 * FIXME: the following tests currently don't work
-		 * because only the first line is checked for line-endings
-		 * see: issue #475
-		 */
-
 		await check([
 			`---${EOL}text${INV}foo${EOL}`,
 		], [

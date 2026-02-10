@@ -1,8 +1,6 @@
-import { defineConfig } from "./src";
+/** @type {import("./src").UserConfig} */
 
-
-
-export default defineConfig({
+export default {
 	extends: "default",
 	rules: {
 		"line-length": [
@@ -18,4 +16,4 @@ export default defineConfig({
 			},
 		],
 	},
-});
+};

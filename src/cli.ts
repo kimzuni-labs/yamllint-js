@@ -51,7 +51,7 @@ export async function* findFilesRecursively(items: string[], conf: YamlLintConfi
 			.catch(() => false);
 
 		if (isDirectory) {
-			const filepaths = await glob(`${item}${item.endsWith("/") ? "" : "/"}**`, {
+			const filepaths = await glob(path.join(item, "**"), {
 				dot: true,
 				baseNameMatch: true,
 				ignore: ["**/node_modules/**"],
@@ -146,7 +146,9 @@ export async function showProblems(
 		maxLevel = Math.max(maxLevel, LEVELS.indexOf(problem.level));
 		if (noWarn && problem.level !== "error") {
 			continue;
-		} else if (argsFormat === "parsable") {
+		}
+
+		if (argsFormat === "parsable") {
 			console.log(Format.parsable(problem, file));
 		} else if (argsFormat === "github") {
 			if (first) {

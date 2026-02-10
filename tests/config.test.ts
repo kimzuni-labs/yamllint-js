@@ -74,8 +74,8 @@ describe("Simple Config Test Case", () => {
 			assert.equal(conf.enabledRules().length, 1);
 		};
 
-		test("kebab-case", () => {
-			run([
+		test("kebab-case", async () => {
+			await run([
 				"rules:",
 				"  colons:",
 				"    max-spaces-before: 0",
@@ -84,8 +84,8 @@ describe("Simple Config Test Case", () => {
 			]);
 		});
 
-		test("camelCase", () => {
-			run([
+		test("camelCase", async () => {
+			await run([
 				"rules:",
 				"  colons:",
 				"    maxSpacesBefore: 0",
@@ -94,8 +94,8 @@ describe("Simple Config Test Case", () => {
 			]);
 		});
 
-		test("defineConfig-style", () => {
-			run([
+		test("defineConfig-style", async () => {
+			await run([
 				"rules:",
 				"  colons:",
 				"    - error",
@@ -104,7 +104,7 @@ describe("Simple Config Test Case", () => {
 				"",
 			]);
 
-			run([
+			await run([
 				"rules:",
 				"  hyphens: error",
 				"",

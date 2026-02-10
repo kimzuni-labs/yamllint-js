@@ -23,7 +23,6 @@ import { describe, test, before, after } from "node:test";
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import * as tsdown from "tsdown";
 
 import { APP } from "../src/constants";
 import { splitlines } from "../src/utils";
@@ -68,15 +67,15 @@ function run(...args: string[]) {
 	});
 }
 
-const build = () => tsdown.build({
-	config: false,
-	clean: true,
-	dts: false,
-	entry: "./src/main.ts",
-	outDir: dist,
-	copy: "src/conf",
-	format: "esm",
-	logLevel: "silent",
+const build = () => new Promise<boolean>((resolve) => {
+	const child = spawn("npm", ["run", "build", "--", "-d", dist, "--dts", "false"]);
+
+	child.once("exit", () => {
+		resolve(true);
+	});
+	child.once("error", () => {
+		resolve(false);
+	});
 });
 
 
@@ -105,8 +104,9 @@ describe("Module Test Case", () => {
 			// eslint-disable-next-line no-console
 			console.log("building...");
 			await build();
-		} catch {
-			throw new Error("failed");
+		} catch (e) {
+			console.error("Failed");
+			throw e;
 		}
 	});
 

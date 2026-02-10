@@ -20,7 +20,7 @@ import fs from "node:fs/promises";
 import iconv from "iconv-lite";
 
 import type { AG } from "./types";
-import { CODECS } from "./constants";
+import { CODECS } from "./codecs";
 import { bufferStartsWith, splitlines, once } from "./utils";
 
 
