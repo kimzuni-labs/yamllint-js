@@ -23,6 +23,12 @@ import { PY_EOL, PY_EOL_END, ASCII } from "./constants";
 
 /**
  * Binary string to buffer
+ *
+ * @example
+ *
+ * ```typescript
+ * B("\xef\xbb\xbf") // <Buffer ef bb bf>
+ * ```
  */
 export function B(string: string) {
 	return Buffer.from(string, "latin1");
@@ -60,7 +66,20 @@ export function bufferStartsWith(buf: Buffer, prefix: Buffer, position = 0) {
 }
 
 
-
+/**
+ * Returns a wrapper that calls `fn` at most once.
+ *
+ * @example
+ *
+ * ```typescript
+ * const onceFn = once(() => {
+ *   console.log("logging");
+ *   return "data";
+ * });
+ * console.log(onceFn()); // "logging", "data"
+ * console.log(onceFn()); // undefined
+ * ```
+ */
 // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 export function once<T = void, R extends boolean | undefined | void = void>(fn: (data: T) => R) {
 	let called = false;
@@ -74,15 +93,43 @@ export function once<T = void, R extends boolean | undefined | void = void>(fn: 
 
 
 
+/**
+ * Get home directory.
+ *
+ * First, try `process.env.HOME`, then `os.homedir()`.
+ */
 export const getHomedir = () => process.env.HOME ?? os.homedir();
 
+/**
+ * Format error message
+ */
 export const formatErrorMessage = (prefix: string, e: unknown) => `${prefix}${e instanceof Error ? e.message : String(e)}`;
 
+/**
+ * Convert string to kebab-case
+ *
+ * @example
+ *
+ * ```typescript
+ * toKebabCase("fooBar") === "foo-bar"
+ * toKebabCase("foo-bar") === "foo-bar"
+ * toKebabCase("foo_bar") === "foo-bar"
+ * ```
+ */
 export const toKebabCase = (string: string) => {
 	string = string.replace(/([A-Z])/g, (_, c) => `-${String(c).toLowerCase()}`);
 	return string.startsWith("-") ? string.slice(1) : string;
 };
 
+/**
+ * Convert keys of object to kebab-case
+ *
+ * @example
+ *
+ * ```typescript
+ * toKebabCaseKeys({ fooBar: 1, foo-bar: 2, foo_bar: 3 }) === { "foo-bar": 3 }
+ * ```
+ */
 export const toKebabCaseKeys = (data: Record<string, unknown>) => {
 	const newData = {} as Record<string, unknown>;
 	for (const key in data) {

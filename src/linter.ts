@@ -317,6 +317,7 @@ function* _run(buffer: string | Buffer, conf: YamlLintConfig, filepath?: string)
  *
  * @param input buffer, string or stream to read from
  * @param conf yamllint configuration object
+ * @param filepath Path of the file where the input was read from
  */
 export async function* run(input: string | Buffer | Readable, conf: YamlLintConfig, filepath?: string) {
 	if (filepath !== undefined && conf.isFileIgnored(filepath)) {

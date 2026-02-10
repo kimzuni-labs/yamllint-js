@@ -331,7 +331,7 @@ export async function run(argv = hideBin(process.argv), stdin: Readable = proces
 		} else {
 			const load = await loadConfigFile();
 			if (load !== null) {
-				conf = await YamlLintConfig.init({ data: load.config });
+				conf = await YamlLintConfig.init({ _data: load.config });
 			} else if (
 				await fs.stat(userGlobalConfig)
 					.then(x => x.isFile())

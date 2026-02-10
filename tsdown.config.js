@@ -10,6 +10,7 @@ export default defineConfig([
 		entry: [
 			"./src/main.ts",
 			"./src/index.ts",
+			"./src/internal.ts",
 		],
 		copy: [
 			"src/conf",

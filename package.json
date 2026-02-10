@@ -46,10 +46,8 @@
   "types": "./dist/index.d.mts",
   "exports": {
     "./package.json": "./package.json",
-    ".": {
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
-    }
+    ".": "./dist/index.mjs",
+    "./internal": "./dist/internal.mjs"
   },
   "dependencies": {
     "cosmiconfig": "^9.0.0",
