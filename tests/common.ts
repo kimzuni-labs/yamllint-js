@@ -265,7 +265,7 @@ export interface RunContextData {
 	 *
 	 * `TypeError: Cannot set property stdin of #<process> which has only a getter`
 	 */
-	returncode: number | null;
+	returncode: typeof process.exitCode;
 	stdout: string;
 	stderr: string;
 }
@@ -307,7 +307,7 @@ export async function runContext(...options: string[] | [{
 			}
 		};
 
-		let returncode: number | null;
+		let returncode: typeof process.exitCode;
 		if (typeof Bun === "undefined" && inputData !== undefined) {
 			InputDataWarn();
 			returncode = null;
@@ -316,9 +316,11 @@ export async function runContext(...options: string[] | [{
 			try {
 				override();
 				if (chdir) process.chdir(chdir);
-				returncode = await cli.run(args);
+				await cli.run(args);
+				returncode = process.exitCode;
 			} finally {
 				process.chdir(bak);
+				process.exitCode = 0;
 				restore();
 			}
 		}

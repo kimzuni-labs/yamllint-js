@@ -267,16 +267,18 @@ export const parseArgs = (argv: string[]) => {
 
 
 /**
+ * Run yamllint and display problems, then set `process.exitCode`
+ *
  * @param argv `hideBin(process.argv)`
- * @returns Number to use for `process.exit(number)`
  */
-export async function run(argv = hideBin(process.argv)): Promise<number> {
+export async function run(argv = hideBin(process.argv)) {
 	const isStdin = argv.includes("-");
 	let args: Awaited<ReturnType<typeof parseArgs>>;
 	try {
 		args = await parseArgs(argv);
 	} catch {
-		return -1;
+		process.exitCode = -1;
+		return;
 	}
 
 	let userGlobalConfig;
@@ -340,7 +342,8 @@ export async function run(argv = hideBin(process.argv)): Promise<number> {
 		}
 	} catch (e) {
 		console.error(String(e));
-		return -1;
+		process.exitCode = -1;
+		return;
 	}
 
 	const files = getValue(args.FILE_OR_DIR, "array");
@@ -352,7 +355,8 @@ export async function run(argv = hideBin(process.argv)): Promise<number> {
 				console.log(file);
 			}
 		}
-		return 0;
+		process.exitCode = 0;
+		return;
 	}
 
 	let maxLevel = 0;
@@ -367,7 +371,8 @@ export async function run(argv = hideBin(process.argv)): Promise<number> {
 				problems = linter.run(buffer, conf, filepath);
 			} catch (e) {
 				console.error(String(e));
-				return -1;
+				process.exitCode = -1;
+				return;
 			}
 			const probLevel = await showProblems(problems, file, format, noWarnings);
 			maxLevel = Math.max(maxLevel, probLevel);
@@ -386,7 +391,8 @@ export async function run(argv = hideBin(process.argv)): Promise<number> {
 			problems = linter.run(process.stdin, conf);
 		} catch (e) {
 			console.error(String(e));
-			return -1;
+			process.exitCode = -1;
+			return;
 		}
 		const probLevel = await showProblems(problems, "stdin", format, noWarnings);
 		maxLevel = Math.max(maxLevel, probLevel);
@@ -400,5 +406,5 @@ export async function run(argv = hideBin(process.argv)): Promise<number> {
 	} else {
 		returnCode = 0;
 	}
-	return returnCode;
+	process.exitCode = returnCode;
 }
