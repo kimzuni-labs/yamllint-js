@@ -18,6 +18,7 @@
 
 /* eslint-disable no-console */
 
+import type { Readable } from "node:stream";
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
@@ -270,8 +271,9 @@ export const parseArgs = (argv: string[]) => {
  * Run yamllint and display problems, then set `process.exitCode`
  *
  * @param argv `hideBin(process.argv)`
+ * @param stdin `process.stdin`
  */
-export async function run(argv = hideBin(process.argv)) {
+export async function run(argv = hideBin(process.argv), stdin: Readable = process.stdin) {
 	const isStdin = argv.includes("-");
 	let args: Awaited<ReturnType<typeof parseArgs>>;
 	try {
@@ -388,14 +390,14 @@ export async function run(argv = hideBin(process.argv)) {
 			 * get the raw bytes so that we can autodetect the character
 			 * encoding.
 			 */
-			problems = linter.run(process.stdin, conf);
+			problems = linter.run(stdin, conf);
+			const probLevel = await showProblems(problems, "stdin", format, noWarnings);
+			maxLevel = Math.max(maxLevel, probLevel);
 		} catch (e) {
 			console.error(String(e));
 			process.exitCode = -1;
 			return;
 		}
-		const probLevel = await showProblems(problems, "stdin", format, noWarnings);
-		maxLevel = Math.max(maxLevel, probLevel);
 	}
 
 	let returnCode;
