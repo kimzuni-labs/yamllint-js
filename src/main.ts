@@ -25,6 +25,5 @@ import { run } from "./cli";
 const execfile = await fs.realpath(process.argv.at(1) ?? "").catch(() => "");
 const filepath = await fs.realpath(import.meta.filename).catch(() => "");
 if (execfile && execfile === filepath) {
-	const returncode = await run();
-	process.exit(returncode);
+	await run();
 }

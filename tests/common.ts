@@ -22,14 +22,14 @@
 import assert from "node:assert";
 import fs from "node:fs/promises";
 import os from "node:os";
-import { Readable } from "node:stream";
+import type { Readable } from "node:stream";
 import util from "node:util";
 import path from "node:path";
 import crypto from "node:crypto";
 import yaml from "yaml";
 import iconv from "iconv-lite";
 
-import { isASCII, once } from "../src/utils";
+import { isASCII } from "../src/utils";
 import { YamlLintConfig, YamlLintConfigError } from "../src/config";
 import * as linter from "../src/linter";
 import * as cli from "../src/cli";
@@ -93,6 +93,14 @@ export async function assertConfigError(
 			return true;
 		},
 	);
+}
+
+
+
+export async function arrayFromAsync<T>(items: AsyncIterable<T>) {
+	const arr = [];
+	for await (const item of items) arr.push(item);
+	return arr;
 }
 
 
@@ -247,17 +255,13 @@ export const ruleTestCase = (id: string) => async (...config: string[] | [Record
 
 
 
-const InputDataWarn = once(() => {
-	console.warn("Warning: Cannot capture exit code when using stdin in Node.js runtime");
-});
-
 export interface RunContextData {
 	/**
 	 * if `returncode` is `null`, `stdin` cannot be used on node.js.
 	 *
 	 * `TypeError: Cannot set property stdin of #<process> which has only a getter`
 	 */
-	returncode: number | null;
+	returncode: typeof process.exitCode;
 	stdout: string;
 	stderr: string;
 }
@@ -267,13 +271,13 @@ export interface RunContextData {
  */
 export async function runContext(...options: string[] | [{
 	chdir?: string;
-	inputData?: string | Buffer;
+	stdin?: Readable;
 	args?: string[];
 	env?: Record<string, string | undefined>;
 }]): Promise<RunContextData> {
 	const {
 		chdir,
-		inputData,
+		stdin,
 		args = [],
 		env = {},
 	} = options.length === 0 || typeof options[0] === "string" ? { args: options as string[] } : options[0];
@@ -284,38 +288,15 @@ export async function runContext(...options: string[] | [{
 		log: stdout,
 		error: stderr,
 	} = await consoleWorkspace(logs, () => envWorkspace(env, async () => {
-		const stdin = process.stdin;
-
-		const override = () => {
-			if (inputData !== undefined) {
-				// @ts-expect-error: ts(2322)
-				process.stdin = Readable.from(inputData);
-			}
-		};
-
-		const restore = () => {
-			if (inputData !== undefined) {
-				process.stdin = stdin;
-			}
-		};
-
-		let returncode: number | null;
-		if (typeof Bun === "undefined" && inputData !== undefined) {
-			InputDataWarn();
-			returncode = null;
-		} else {
-			const bak = process.cwd();
-			try {
-				override();
-				if (chdir) process.chdir(chdir);
-				returncode = await cli.run(args);
-			} finally {
-				process.chdir(bak);
-				restore();
-			}
+		const bak = process.cwd();
+		try {
+			if (chdir) process.chdir(chdir);
+			await cli.run(args, stdin);
+			return process.exitCode;
+		} finally {
+			process.chdir(bak);
+			process.exitCode = 0;
 		}
-
-		return returncode;
 	}));
 
 	return {
@@ -362,7 +343,7 @@ export async function noTTYWorkspace<T>(
 	}
 }
 
-type ConsoleLevel = "log" | "debug" | "info" | "warn" | "error";
+export type ConsoleLevel = "log" | "debug" | "info" | "warn" | "error";
 export async function consoleWorkspace<
 	L extends ConsoleLevel[],
 	T,

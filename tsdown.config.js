@@ -20,5 +20,6 @@ export default defineConfig([
 		target: tsconfig.compilerOptions.target,
 		hash: false,
 		dts: true,
+		minify: "dce-only",
 	},
 ]);

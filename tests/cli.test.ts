@@ -21,6 +21,7 @@
 
 import assert from "node:assert/strict";
 import { describe, test, before, after } from "node:test";
+import { Readable } from "node:stream";
 import fs from "node:fs/promises";
 import path from "node:path";
 import glob from "fast-glob";
@@ -723,15 +724,13 @@ describe("Command Line Test Case", () => {
 	});
 
 	test("run read from stdin", async () => {
-		const inputData = "I am a string\ntherefore: I am an error\n";
-
 		/*
 		 * prepares stdin with an invalid yaml string so that we can
 		 * check for its specific error, and be assured that stdin was
 		 * read
 		 */
 		const ctx = await runContext({
-			inputData,
+			stdin: Readable.from("I am a string\ntherefore: I am an error\n"),
 			args: ["-", "-f", "parsable"],
 		});
 		checkContext(ctx, [
@@ -739,6 +738,13 @@ describe("Command Line Test Case", () => {
 			/^stdin:1:1: \[error\] syntax error: Implicit keys need to be on a single line \(syntax\)/,
 			"",
 		]);
+
+		// invalid input type
+		const { stderr } = await runContext({
+			stdin: 123 as unknown as Readable,
+			args: ["-", "-f", "parsable"],
+		});
+		assert.match(stderr, /input should be a string or a stream/);
 	});
 
 	test("run no warnings", async () => {
@@ -1048,9 +1054,9 @@ describe("Command Line Encoding Test Case", () => {
 	) => {
 		const filepaths = await glob(path.join(rootDir, "**"));
 		for (const filepath of filepaths) {
-			const inputData = await fs.readFile(filepath);
+			const content = await fs.readFile(filepath);
 			const ctx = await runContext({
-				inputData,
+				stdin: Readable.from(content),
 				args: ["-c", configPath, "-"],
 			});
 			if (rootDir === "sorted_correctly") {

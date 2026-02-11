@@ -19,7 +19,6 @@ import type yaml from "yaml";
 import { getDefaultSearchPlaces } from "cosmiconfig";
 
 import pkg from "../package.json";
-import { B } from "./utils";
 
 
 
@@ -55,7 +54,10 @@ export const ALIASES = {
 	off: null,
 	warn: "warning",
 	err: "error",
-} as const;
+	0: null,
+	1: "warning",
+	2: "error",
+} as const satisfies Record<string | number, Level>;
 export const PROBLEM_LEVELS = {
 	warning: 1,
 	error: 2,
@@ -82,20 +84,3 @@ export const PY_EOL_END = new RegExp(`(${PY_EOL.source})$`);
 
 // eslint-disable-next-line no-control-regex
 export const ASCII = /^[\x00-\x7F]*$/;
-
-
-
-/**
- * Equivalent of Python's `codecs`.
- *
- * @see https://docs.python.org/3/library/codecs.html#codecs.BOM
- */
-export const CODECS = {
-	BOM_UTF8: B("\xef\xbb\xbf"),
-	BOM_UTF16_BE: B("\xfe\xff"),
-	BOM_UTF16_LE: B("\xff\xfe"),
-	BOM_UTF32_BE: B("\x00\x00\xfe\xff"),
-	BOM_UTF32_LE: B("\xff\xfe\x00\x00"),
-	UTF16_ZERO: B("\x00"),
-	UTF32_ZERO: B("\x00\x00\x00"),
-};

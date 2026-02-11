@@ -260,10 +260,10 @@ describe("Encoding Stuff From Common Test Case", () => {
 	});
 
 	test("iconv equivalent of test codec", () => {
-		assert.equal("utf_32", iconvEquivalentOfTestCodec("utf_32_be_sig"));
-		assert.equal("utf_32", iconvEquivalentOfTestCodec("utf_32_le_sig"));
-		assert.equal("utf_16", iconvEquivalentOfTestCodec("utf_16_be_sig"));
-		assert.equal("utf_16", iconvEquivalentOfTestCodec("utf_16_le_sig"));
+		assert.equal(iconvEquivalentOfTestCodec("utf_32_be_sig"), "utf_32");
+		assert.equal(iconvEquivalentOfTestCodec("utf_32_le_sig"), "utf_32");
+		assert.equal(iconvEquivalentOfTestCodec("utf_16_be_sig"), "utf_16");
+		assert.equal(iconvEquivalentOfTestCodec("utf_16_le_sig"), "utf_16");
 	});
 
 	test("uses bom", () => {

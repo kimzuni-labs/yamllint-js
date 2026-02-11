@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import type { Rule } from "../types";
+import type { Rule } from "./types";
 
 import * as anchors from "./anchors";
 import * as braces from "./braces";

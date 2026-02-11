@@ -26,7 +26,7 @@ import { cosmiconfig, defaultLoaders, type Loader } from "cosmiconfig";
 
 import type { Prettify, RuleConf, Rule, RuleId, AllLevel, Level, Alias } from "./types";
 import { LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
-import { splitlines, getHomedir, formatErrorMessage, kebabCaseKeys } from "./utils";
+import { splitlines, getHomedir, formatErrorMessage, toKebabCaseKeys } from "./utils";
 import * as yamllintRules from "./rules";
 import * as decoder from "./decoder";
 
@@ -161,7 +161,7 @@ export class YamlLintConfig {
 		if (!value || Array.isArray(value) || typeof value !== "object") {
 			throw new YamlLintConfigError("invalid config: not a mapping");
 		}
-		const conf = kebabCaseKeys(value as Record<string, unknown>);
+		const conf = toKebabCaseKeys(value as Record<string, unknown>);
 
 		if (
 			conf.rules !== undefined
@@ -246,7 +246,7 @@ export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get
 	if (!config || typeof config !== "object") {
 		throw new YamlLintConfigError(`invalid config: rule "${rule.ID}": should be either "enable", "disable" or a mapping`);
 	}
-	const conf = kebabCaseKeys(config as Record<string, unknown>);
+	const conf = toKebabCaseKeys(config as Record<string, unknown>);
 
 	conf.level = validateLevel(conf.level);
 	if (conf.level === undefined) {
@@ -351,11 +351,10 @@ export async function getExtendedConfigFile(name: string) {
 export function validateLevel(value: unknown): Level | undefined {
 	if (value === undefined) {
 		return "error";
-	} else if (typeof value === "number") {
-		return LEVELS[value];
-	} else if (value === null || typeof value === "string") {
-		if (LEVELS.includes(value as Level)) return value as Level;
-		if (value && value in ALIASES) return ALIASES[value as Alias];
+	} else if (LEVELS.includes(value as Level)) {
+		return value as Level;
+	} else if ((value as Alias) in ALIASES) {
+		return ALIASES[value as Alias];
 	}
 }
 
