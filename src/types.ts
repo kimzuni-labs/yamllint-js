@@ -21,6 +21,11 @@ import type { Level, Alias } from "./constants";
 import type { Token } from "./parser";
 
 export type {
+	YamlLintConfigProps,
+	KebabCaseConfigData, CamelCaseConfigData, MaybeCamelCaseConfigData,
+} from "./config";
+
+export type {
 	CommonCheckProps, LineCheckProps, TokenCheckProps, CommentCheckProps,
 	BaseRule, LineRule, TokenRule, CommentRule, Rule,
 	RuleId, RuleConf,
@@ -45,6 +50,8 @@ export {
 export type AllLevel = Level | Alias;
 
 export type ExtractToken<T extends yaml.CST.Token["type"]> = Token & { data: { type: T } };
+
+export type BuiltInExtendName = "default" | "relaxed";
 
 
 
@@ -89,3 +96,20 @@ export type ParentTokenData = Exclude<
 	| yaml.CST.SourceToken
 	| yaml.CST.ErrorToken
 >;
+
+
+
+export type ToCamelCase<S extends string> =
+	S extends `${infer T}-${infer U}`
+		? `${T}${Capitalize<ToCamelCase<U>>}`
+		: S;
+
+export type MaybeCamelCase<S extends string> = ToCamelCase<S> | S;
+
+export type ToCamelCaseKeys<T> = {
+	[K in keyof T as K extends string ? ToCamelCase<K> : K]: T[K];
+} & {};
+
+export type MaybeCamelCaseKeys<T> = {
+	[K in keyof T as K extends string ? MaybeCamelCase<K> : K]: T[K];
+} & {};

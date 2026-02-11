@@ -24,7 +24,7 @@ import z from "zod";
 import ignore, { type Ignore } from "ignore";
 import { cosmiconfig, defaultLoaders, type Loader } from "cosmiconfig";
 
-import type { Prettify, RuleConf, Rule, RuleId, AllLevel, Level, Alias } from "./types";
+import type { Prettify, BuiltInExtendName, RuleConf, Rule, RuleId, AllLevel, Level, Alias, ToCamelCaseKeys, MaybeCamelCaseKeys } from "./types";
 import { LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
 import { splitlines, getHomedir, formatErrorMessage, toKebabCaseKeys } from "./utils";
 import * as yamllintRules from "./rules";
@@ -36,33 +36,103 @@ const ig = () => ignore({ allowRelativePaths: true });
 
 
 
+interface IgnoreData<T extends Ignore | string | string[] = string | string[]> {
+	ignore?: T;
+	"ignore-from-file"?: T;
+}
+
+
+
+interface GenerateConfigData<T> {
+	extends?: BuiltInExtendName | (string & {});
+	"yaml-files"?: string | string[];
+	locale?: string;
+	rules?: T;
+}
+
+export type KebabCaseConfigData<L extends AllLevel = AllLevel> = Prettify<
+	& IgnoreData
+	& GenerateConfigData<{
+		[ID in RuleId]?: L | [
+			level?: L,
+			options?: Prettify<IgnoreData & Partial<RuleConf<ID>>>,
+		]
+	}>
+>;
+
+export type CamelCaseConfigData<L extends AllLevel = AllLevel> = ToCamelCaseKeys<
+	& IgnoreData
+	& GenerateConfigData<{
+		[ID in RuleId]?: L | [
+			level?: L,
+			options?: ToCamelCaseKeys<IgnoreData & Partial<RuleConf<ID>>>,
+		]
+	}>
+>;
+
+export type MaybeCamelCaseConfigData<L extends AllLevel = AllLevel> = MaybeCamelCaseKeys<
+	& IgnoreData
+	& GenerateConfigData<{
+		[ID in RuleId]?: L | [
+			level?: L,
+			options?: MaybeCamelCaseKeys<IgnoreData & Partial<RuleConf<ID>>>,
+		]
+	}>
+>;
+
+
+
 export class YamlLintConfigError extends Error {}
 
-export type YamlLintConfigProps = {
-	content: string;
-	file?: never;
-	data?: never;
-} | {
-	content?: never;
-	file: string;
-	data?: never;
-} | {
-	content?: never;
-	file?: never;
-	data: unknown;
-};
+
 
 type YamlLintConfigRules = {
 	[ID in RuleId]?: false | Prettify<
 		& {
 			level: Extract<AllLevel, "warning" | "error">;
-			ignore?: Ignore;
-			"ignore-from-file"?: Ignore;
 		}
+		& IgnoreData<Ignore>
 		& RuleConf<ID>
 	>
 };
 
+export type YamlLintConfigProps = {
+	file: string;
+	content?: never;
+	data?: never;
+	_data?: never;
+} | {
+	file?: never;
+	content: string;
+	data?: never;
+	_data?: never;
+} | {
+	file?: never;
+	content?: never;
+	data: MaybeCamelCaseConfigData;
+	_data?: never;
+} | {
+	file?: never;
+	content?: never;
+	data?: never;
+	_data: unknown;
+};
+
+/**
+ * YAML lint configuration,
+ * Only one of `file`, `content`, `data` can be specified.
+ *
+ * @example
+ *
+ * ```typescript
+ * const conf = await YamlLintConfig.init({
+ *   file: "path/to/yamllint.yaml",
+ *   // content: "---\nYAML: content",
+ *   // data: {}, // type-safe
+ *   // _data: {}, // unknown type
+ * });
+ * ```
+ */
 export class YamlLintConfig {
 	#props: YamlLintConfigProps;
 	#data: unknown;
@@ -84,9 +154,10 @@ export class YamlLintConfig {
 
 	constructor(props: YamlLintConfigProps) {
 		assert(
-			Number(props.content !== undefined)
-			+ Number(props.file !== undefined)
+			Number(props.file !== undefined)
+			+ Number(props.content !== undefined)
 			+ Number(props.data !== undefined)
+			+ Number(props._data !== undefined)
 			=== 1,
 		);
 
@@ -141,8 +212,8 @@ export class YamlLintConfig {
 
 	async #init() {
 		const props = this.#props;
-		if (props.data !== undefined) {
-			this.#data = props.data;
+		if (props._data !== undefined || props.data !== undefined) {
+			this.#data = props._data ?? props.data;
 		} else {
 			try {
 				if (props.content !== undefined) {
@@ -304,6 +375,16 @@ export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get
 
 
 
+/**
+ * Load YAML lint configuration from a file.
+ *
+ * @example
+ *
+ * ```typescript
+ * const autoDetected = await loadConfigFile();
+ * const specified = await loadConfigFile("path/to/yamllint.yaml");
+ * ```
+ */
 export const loadConfigFile = (() => {
 	const loadYAML: Loader = async function loadYAML(filepath) {
 		const content = decoder.autoDecode(await fs.readFile(filepath));
@@ -348,6 +429,26 @@ export async function getExtendedConfigFile(name: string) {
 
 
 
+/**
+ * if value is {@link AllLevel} or undefined
+ * then convert to {@link Level} (undefined -> "error"),
+ * otherwise return undefined
+ *
+ * @example
+ *
+ * ```typescript
+ * validateLevel(undefined) // "error"
+ * validateLevel(2) // "error"
+ * validateLevel(1) // "warning"
+ * validateLevel("1") // "warning"
+ * validateLevel("error") // "error"
+ * validateLevel("warning") // "warning"
+ * validateLevel("off") // null
+ * validateLevel(null) // null
+ * validateLevel(3) // undefined
+ * validateLevel("invalid") // undefined
+ * ```
+ */
 export function validateLevel(value: unknown): Level | undefined {
 	if (value === undefined) {
 		return "error";

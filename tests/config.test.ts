@@ -1064,11 +1064,22 @@ describe("Ignore Config Test Case", () => {
 			"file-without-yaml-extension": "42\n",
 			"link.yaml": "symlink://file-without-yaml-extension",
 			"link-404.yaml": "symlink://file-that-does-not-exist",
-		}, async () => {
+		}, async ({ resolve }) => {
+			const ctx = await runContext("-f", "parsable", ".");
+			assert.notEqual(ctx.returncode, 0);
+
+			await fs.writeFile(resolve(".yamllint"), [
+				"extends: default",
+				"ignore: |",
+				"  *404.yaml",
+				"",
+			].join("\n"));
+
 			const { returncode, stdout } = await runContext("-f", "parsable", ".");
 			const out = splitlines(stdout).sort();
 			assert.equal(returncode, 0);
 			assert.deepStrictEqual(out, [
+				`.yamllint:1:1: ${docstart}`,
 				`link.yaml:1:1: ${docstart}`,
 			]);
 		});

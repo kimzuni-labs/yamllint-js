@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 kimzuni
+ * Copyright (C) 2026 kimzuni
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,13 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import type { AllLevel, CamelCaseConfigData } from "./types";
+export type {
+	AllLevel,
+	BuiltInExtendName,
+	RuleId,
+	Prettify,
+} from "./types";
 
+export {
+	type Level,
+	type Alias,
+	LEVELS,
+	ALIASES,
+} from "./constants";
 
+export {
+	type CamelCaseConfigData,
+	type KebabCaseConfigData,
+	type MaybeCamelCaseConfigData,
+	type YamlLintConfigProps,
+	YamlLintConfig,
+	YamlLintConfigError,
+	loadConfigFile,
+	validateLevel,
+} from "./config";
 
-export interface UserConfig extends CamelCaseConfigData<Extract<AllLevel, "error" | "warning" | "off" | 0 | 1 | 2>> {
-}
-
-export function defineConfig(options?: UserConfig) {
-	return options;
-}
+export {
+	LintProblem,
+	run as linter,
+} from "./linter";
