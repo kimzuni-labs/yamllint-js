@@ -22,10 +22,10 @@ import type { Readable } from "node:stream";
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import glob from "fast-glob";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+import type { AG } from "./types";
 import { APP, LEVELS, PROBLEM_LEVELS } from "./constants";
 import { getHomedir } from "./utils";
 import { YamlLintConfig, loadConfigFile } from "./config";
@@ -45,23 +45,28 @@ const colors = {
 
 
 
-export async function* findFilesRecursively(items: string[], conf: YamlLintConfig) {
+export async function* findFilesRecursively(items: string[], conf: YamlLintConfig): AG<string> {
 	for (const item of items) {
 		const isDirectory = await fs.stat(item)
 			.then(x => x.isDirectory())
 			.catch(() => false);
 
 		if (isDirectory) {
-			const filepaths = await glob(path.join(item, "**"), {
-				dot: true,
-				baseNameMatch: true,
-				ignore: ["**/node_modules/**"],
-			});
-			for (const filepath of filepaths) {
-				if (conf.isYamlFile(filepath) && !conf.isFileIgnored(filepath)) {
+			if (item.endsWith("node_modules")) continue;
+
+			const dirents = await fs.readdir(item, { withFileTypes: true, recursive: false, encoding: "utf-8" });
+
+			const directories = [];
+			for (const dirent of dirents) {
+				const filepath = path.join(dirent.parentPath, dirent.name);
+				if (dirent.isDirectory()) {
+					directories.push(filepath);
+				} else if (conf.isYamlFile(filepath) && !conf.isFileIgnored(filepath)) {
 					yield filepath;
 				}
 			}
+
+			yield* findFilesRecursively(directories, conf);
 		} else {
 			yield item;
 		}

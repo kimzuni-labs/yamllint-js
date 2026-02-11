@@ -51,7 +51,6 @@
   },
   "dependencies": {
     "cosmiconfig": "^9.0.0",
-    "fast-glob": "^3.3.3",
     "iconv-lite": "^0.7.2",
     "ignore": "^7.0.5",
     "recheck": "^4.5.0",
