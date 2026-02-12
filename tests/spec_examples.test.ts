@@ -16,10 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { describe, test, expect } from "vitest";
 import path from "node:path";
 import fs from "node:fs/promises";
 
@@ -351,7 +348,7 @@ const conf = {
 
 const dirname = path.join(import.meta.dirname, "yaml-1.2-spec-examples");
 const files = await fs.readdir(dirname);
-assert(files.length === 132);
+expect.assert(files.length === 132);
 
 
 

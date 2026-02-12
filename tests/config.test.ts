@@ -17,10 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-import assert from "node:assert/strict";
-import { describe, test, before, after } from "node:test";
+import { describe, test, expect, beforeAll, afterAll } from "vitest";
 import fs from "node:fs/promises";
 import z from "zod";
 
@@ -35,7 +32,6 @@ import {
 	encode,
 	buildTempWorkspace,
 	tempWorkspace,
-	assertConfigError,
 	runContext,
 	type RunContextData,
 	type BuildTempWorkspaceReturnType,
@@ -45,20 +41,6 @@ import {
 
 const newConf = (...strings: string[]) => YamlLintConfig.init({ content: strings.join("\n") });
 
-const assertBasicError = async (
-	block: () => Promise<unknown>,
-	cb?: (e: Error) => unknown,
-) => {
-	await assert.rejects(
-		block,
-		(e) => {
-			assert.ok(e instanceof Error);
-			if (cb) cb(e);
-			return true;
-		},
-	);
-};
-
 
 
 describe("Simple Config Test Case", () => {
@@ -66,12 +48,13 @@ describe("Simple Config Test Case", () => {
 		const run = async (config: string[]) => {
 			const conf = await newConf(...config);
 			if (conf.rules.colons !== undefined) {
-				assert.deepStrictEqual(Object.keys(conf.rules), ["colons"]);
-				assert.ok(conf.rules.colons);
-				assert.equal(conf.rules.colons["max-spaces-before"], 0);
-				assert.equal(conf.rules.colons["max-spaces-after"], 1);
+				expect(conf.rules).all.keys("colons");
+				expect(conf.rules.colons).toMatchObject({
+					"max-spaces-before": 0,
+					"max-spaces-after": 1,
+				});
 			}
-			assert.equal(conf.enabledRules().length, 1);
+			expect(conf.enabledRules()).toHaveLength(1);
 		};
 
 		test("kebab-case", async () => {
@@ -113,17 +96,15 @@ describe("Simple Config Test Case", () => {
 	});
 
 	test("invalid conf", async () => {
-		await assertConfigError(() => newConf("not: valid: yaml"));
+		await expect(newConf("not: valid: yaml")).rejects.toThrow();
 	});
 
 	test("unknown rule", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"rules:",
 			"  this-one-does-not-exist: enable",
 			"",
-		), (e) => {
-			assert.equal(e.message, "invalid config: no such rule: \"this-one-does-not-exist\"");
-		});
+		)).rejects.toThrow("invalid config: no such rule: \"this-one-does-not-exist\"");
 	});
 
 	test("missing option", async () => {
@@ -133,9 +114,10 @@ describe("Simple Config Test Case", () => {
 			after: number,
 		) => {
 			const conf = await newConf(...config);
-			assert.ok(conf.rules.colons);
-			assert.equal(conf.rules.colons["max-spaces-before"], before);
-			assert.equal(conf.rules.colons["max-spaces-after"], after);
+			expect(conf.rules.colons).toMatchObject({
+				"max-spaces-before": before,
+				"max-spaces-after": after,
+			});
 		};
 
 		await run([
@@ -153,16 +135,14 @@ describe("Simple Config Test Case", () => {
 	});
 
 	test("unknown option", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"rules:",
 			"  colons:",
 			"    max-spaces-before: 0",
 			"    max-spaces-after: 1",
 			"    abcdef: true",
 			"",
-		), (e) => {
-			assert.equal(e.message, "invalid config: unknown option \"abcdef\" for rule \"colons\"");
-		});
+		)).rejects.toThrow("invalid config: unknown option \"abcdef\" for rule \"colons\"");
 	});
 
 	test("yes/no for booleans", async () => {
@@ -177,9 +157,10 @@ describe("Simple Config Test Case", () => {
 			],
 		) => {
 			const conf = await newConf(...config);
-			assert.ok(conf.rules.indentation);
-			assert.equal(conf.rules.indentation["indent-sequences"], indentSequences);
-			assert.equal(conf.rules.indentation["check-multi-line-strings"], checkMultiLineStrings);
+			expect(conf.rules.indentation).toMatchObject({
+				"indent-sequences": indentSequences,
+				"check-multi-line-strings": checkMultiLineStrings,
+			});
 			return conf;
 		};
 
@@ -219,7 +200,7 @@ describe("Simple Config Test Case", () => {
 			false,
 		]);
 
-		await assertConfigError(() => run([
+		await expect(run([
 			"rules:",
 			"  indentation:",
 			"    spaces: 2",
@@ -229,9 +210,7 @@ describe("Simple Config Test Case", () => {
 		], [
 			"",
 			false,
-		]), (e) => {
-			assert.ok(e.message.startsWith("invalid config: option \"indent-sequences\" of \"indentation\" should be in "));
-		});
+		])).rejects.toThrow("invalid config: option \"indent-sequences\" of \"indentation\" should be in ");
 	});
 
 	test("enable disable keywords", async () => {
@@ -241,11 +220,12 @@ describe("Simple Config Test Case", () => {
 			"  hyphens: disable",
 			"",
 		);
-		assert.ok(conf.rules.colons);
-		assert.equal(conf.rules.colons.level, "error");
-		assert.equal(conf.rules.colons["max-spaces-after"], 1);
-		assert.equal(conf.rules.colons["max-spaces-before"], 0);
-		assert.equal(conf.rules.hyphens, false);
+		expect(conf.rules.colons).toMatchObject({
+			level: "error",
+			"max-spaces-before": 0,
+			"max-spaces-after": 1,
+		});
+		expect(conf.rules.hyphens).toBe(false);
 	});
 
 	test("validate rule conf", async () => {
@@ -253,14 +233,14 @@ describe("Simple Config Test Case", () => {
 			ID: "fake",
 		} as Rule;
 
-		assert.equal(await validateRuleConf(fake, false), false);
-		assert.deepStrictEqual(await validateRuleConf(fake, {}), { level: "error" });
+		await expect(validateRuleConf(fake, false)).resolves.toBe(false);
+		await expect(validateRuleConf(fake, {})).resolves.toStrictEqual({ level: "error" });
 
 		await validateRuleConf(fake, { level: undefined });
 		await validateRuleConf(fake, { level: "error" });
 		await validateRuleConf(fake, { level: "warning" });
 		await validateRuleConf(fake, { level: null });
-		await assertConfigError(() => validateRuleConf(fake, { level: "invalid" }));
+		await expect(validateRuleConf(fake, { level: "invalid" })).rejects.toThrow();
 
 		// aliases
 		await validateRuleConf(fake, { level: "err" });
@@ -275,7 +255,7 @@ describe("Simple Config Test Case", () => {
 		};
 		await validateRuleConf(fake, { length: 8 });
 		await validateRuleConf(fake, {});
-		await assertConfigError(() => validateRuleConf(fake, { height: 8 }));
+		await expect(validateRuleConf(fake, { height: 8 })).rejects.toThrow();
 
 		fake.CONF = z.object({
 			a: z.boolean(),
@@ -288,7 +268,7 @@ describe("Simple Config Test Case", () => {
 		await validateRuleConf(fake, { a: true, b: 0 });
 		await validateRuleConf(fake, { a: true });
 		await validateRuleConf(fake, { b: 0 });
-		await assertConfigError(() => validateRuleConf(fake, { a: 1, b: 0 }));
+		await expect(validateRuleConf(fake, { a: 1, b: 0 })).rejects.toThrow();
 
 		fake.CONF = z.object({
 			choice: z.union([z.literal(true), z.literal(88), z.literal("str")]),
@@ -299,9 +279,9 @@ describe("Simple Config Test Case", () => {
 		await validateRuleConf(fake, { choice: true });
 		await validateRuleConf(fake, { choice: 88 });
 		await validateRuleConf(fake, { choice: "str" });
-		await assertConfigError(() => validateRuleConf(fake, { choice: false }));
-		await assertConfigError(() => validateRuleConf(fake, { choice: 99 }));
-		await assertConfigError(() => validateRuleConf(fake, { choice: "abc" }));
+		await expect(validateRuleConf(fake, { choice: false })).rejects.toThrow();
+		await expect(validateRuleConf(fake, { choice: 99 })).rejects.toThrow();
+		await expect(validateRuleConf(fake, { choice: "abc" })).rejects.toThrow();
 
 		fake.CONF = z.object({
 			choice: z.union([z.int(), z.literal("hardcoded")]),
@@ -312,8 +292,8 @@ describe("Simple Config Test Case", () => {
 		await validateRuleConf(fake, { choice: 42 });
 		await validateRuleConf(fake, { choice: "hardcoded" });
 		await validateRuleConf(fake, {});
-		await assertConfigError(() => validateRuleConf(fake, { choice: false }));
-		await assertConfigError(() => validateRuleConf(fake, { choice: "abc" }));
+		await expect(validateRuleConf(fake, { choice: false })).rejects.toThrow();
+		await expect(validateRuleConf(fake, { choice: "abc" })).rejects.toThrow();
 
 		fake.CONF = z.object({
 			multiple: z.enum(["item1", "item2", "item3"]).array(),
@@ -325,74 +305,62 @@ describe("Simple Config Test Case", () => {
 		await validateRuleConf(fake, { multiple: ["item2"] });
 		await validateRuleConf(fake, { multiple: ["item2", "item3"] });
 		await validateRuleConf(fake, {});
-		await assertConfigError(() => validateRuleConf(fake, { multiple: "item1" }));
-		await assertConfigError(() => validateRuleConf(fake, { multiple: [""] }));
-		await assertConfigError(() => validateRuleConf(fake, { multiple: ["item1", 4] }));
-		await assertConfigError(() => validateRuleConf(fake, { multiple: ["item4"] }));
+		await expect(validateRuleConf(fake, { multiple: "item1" })).rejects.toThrow();
+		await expect(validateRuleConf(fake, { multiple: [""] })).rejects.toThrow();
+		await expect(validateRuleConf(fake, { multiple: ["item1", 4] })).rejects.toThrow();
+		await expect(validateRuleConf(fake, { multiple: ["item4"] })).rejects.toThrow();
 	});
 
 	test("invalid rule", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"rules:",
 			"",
-		), (e) => {
-			assert.equal(e.message, "invalid config: rules should be a mapping");
-		});
+		)).rejects.toThrow("invalid config: rules should be a mapping");
 
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"rules:",
 			"  colons: invalid",
 			"",
-		), (e) => {
-			assert.equal(e.message, "invalid config: rule \"colons\": should be either \"enable\", \"disable\" or a mapping");
-		});
+		)).rejects.toThrow("invalid config: rule \"colons\": should be either \"enable\", \"disable\" or a mapping");
 	});
 
 	test("invalid ignore", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"ignore: true",
 			"",
-		), (e) => {
-			assert.equal(e.message, "invalid config: ignore should contain file patterns");
-		});
+		)).rejects.toThrow("invalid config: ignore should contain file patterns");
 	});
 
 	test("invalid rule ignore", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"rules:",
 			"  colons:",
 			"    ignore: true",
 			"",
-		), (e) => {
-			assert.equal(e.message, "invalid config: ignore should contain file patterns");
-		});
+		)).rejects.toThrow("invalid config: ignore should contain file patterns");
 	});
 
 	test("invalid rule ignore from file", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"rules:",
 			"  colons:",
 			"    ignore-from-file: 1337",
 			"",
-		));
+		)).rejects.toThrow();
 	});
 
 	test("invalid locale", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"locale: true",
 			"",
-		), (e) => {
-			assert.equal(e.message, "invalid config: locale should be a string");
-		});
+		)).rejects.toThrow("invalid config: locale should be a string");
 	});
 
 	test("invalid yaml files", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"yaml-files: true",
 			"",
-		), (e) => {
-			assert.equal(e.message, "invalid config: yaml-files should be a list of file patterns");
-		});
+		)).rejects.toThrow("invalid config: yaml-files should be a list of file patterns");
 	});
 });
 
@@ -415,13 +383,15 @@ describe("Extended Config Test Case", () => {
 		);
 
 		conf.extend(oldConf);
-		assert.deepStrictEqual(Object.keys(conf.rules), ["colons", "hyphens"]);
-		assert.ok(conf.rules.colons);
-		assert.equal(conf.rules.colons["max-spaces-before"], 0);
-		assert.equal(conf.rules.colons["max-spaces-after"], 1);
-		assert.ok(conf.rules.hyphens);
-		assert.equal(conf.rules.hyphens["max-spaces-after"], 2);
-		assert.equal(conf.enabledRules().length, 2);
+		expect(conf.rules).all.keys("colons", "hyphens");
+		expect(conf.rules.colons).toMatchObject({
+			"max-spaces-before": 0,
+			"max-spaces-after": 1,
+		});
+		expect(conf.rules.hyphens).toMatchObject({
+			"max-spaces-after": 2,
+		});
+		expect(conf.enabledRules()).toHaveLength(2);
 	});
 
 	test("extend on file", async () => {
@@ -443,13 +413,15 @@ describe("Extended Config Test Case", () => {
 				"",
 			);
 
-			assert.deepStrictEqual(Object.keys(conf.rules), ["colons", "hyphens"]);
-			assert.ok(conf.rules.colons);
-			assert.equal(conf.rules.colons["max-spaces-before"], 0);
-			assert.equal(conf.rules.colons["max-spaces-after"], 1);
-			assert.ok(conf.rules.hyphens);
-			assert.equal(conf.rules.hyphens["max-spaces-after"], 2);
-			assert.equal(conf.enabledRules().length, 2);
+			expect(conf.rules).all.keys("colons", "hyphens");
+			expect(conf.rules.colons).toMatchObject({
+				"max-spaces-before": 0,
+				"max-spaces-after": 1,
+			});
+			expect(conf.rules.hyphens).toMatchObject({
+				"max-spaces-after": 2,
+			});
+			expect(conf.enabledRules()).toHaveLength(2);
 		});
 	});
 
@@ -473,11 +445,12 @@ describe("Extended Config Test Case", () => {
 				"",
 			);
 
-			assert.deepStrictEqual(Object.keys(conf.rules), ["colons", "hyphens"]);
-			assert.equal(conf.rules.colons, false);
-			assert.ok(conf.rules.hyphens);
-			assert.equal(conf.rules.hyphens["max-spaces-after"], 2);
-			assert.equal(conf.enabledRules().length, 1);
+			expect(conf.rules).all.keys("colons", "hyphens");
+			expect(conf.rules.colons).toBe(false);
+			expect(conf.rules.hyphens).toMatchObject({
+				"max-spaces-after": 2,
+			});
+			expect(conf.enabledRules()).toHaveLength(1);
 		});
 	});
 
@@ -503,13 +476,15 @@ describe("Extended Config Test Case", () => {
 				"",
 			);
 
-			assert.deepStrictEqual(Object.keys(conf.rules), ["colons", "hyphens"]);
-			assert.ok(conf.rules.colons);
-			assert.equal(conf.rules.colons["max-spaces-before"], 3);
-			assert.equal(conf.rules.colons["max-spaces-after"], 4);
-			assert.ok(conf.rules.hyphens);
-			assert.equal(conf.rules.hyphens["max-spaces-after"], 2);
-			assert.equal(conf.enabledRules().length, 2);
+			expect(conf.rules).all.keys("colons", "hyphens");
+			expect(conf.rules.colons).toMatchObject({
+				"max-spaces-before": 3,
+				"max-spaces-after": 4,
+			});
+			expect(conf.rules.hyphens).toMatchObject({
+				"max-spaces-after": 2,
+			});
+			expect(conf.enabledRules()).toHaveLength(2);
 		});
 	});
 
@@ -533,13 +508,15 @@ describe("Extended Config Test Case", () => {
 				"",
 			);
 
-			assert.deepStrictEqual(Object.keys(conf.rules), ["colons", "hyphens"]);
-			assert.ok(conf.rules.colons);
-			assert.equal(conf.rules.colons["max-spaces-before"], 0);
-			assert.equal(conf.rules.colons["max-spaces-after"], 1);
-			assert.ok(conf.rules.hyphens);
-			assert.equal(conf.rules.hyphens["max-spaces-after"], 2);
-			assert.equal(conf.enabledRules().length, 2);
+			expect(conf.rules).all.keys("colons", "hyphens");
+			expect(conf.rules.colons).toMatchObject({
+				"max-spaces-before": 0,
+				"max-spaces-after": 1,
+			});
+			expect(conf.rules.hyphens).toMatchObject({
+				"max-spaces-after": 2,
+			});
+			expect(conf.enabledRules()).toHaveLength(2);
 		});
 	});
 
@@ -564,11 +541,12 @@ describe("Extended Config Test Case", () => {
 				"",
 			);
 
-			assert.ok(conf.rules.braces);
-			assert.equal(conf.rules.braces["min-spaces-inside"], 0);
-			assert.equal(conf.rules.braces["max-spaces-inside"], 1248);
-			assert.equal(conf.rules.braces["min-spaces-inside-empty"], 2357);
-			assert.equal(conf.rules.braces["max-spaces-inside-empty"], -1);
+			expect(conf.rules.braces).toMatchObject({
+				"min-spaces-inside": 0,
+				"max-spaces-inside": 1248,
+				"min-spaces-inside-empty": 2357,
+				"max-spaces-inside-empty": -1,
+			});
 
 
 
@@ -587,9 +565,10 @@ describe("Extended Config Test Case", () => {
 				"",
 			);
 
-			assert.ok(conf.rules.colons);
-			assert.equal(conf.rules.colons["max-spaces-before"], 1337);
-			assert.equal(conf.rules.colons["max-spaces-after"], 1);
+			expect(conf.rules.colons).toMatchObject({
+				"max-spaces-before": 1337,
+				"max-spaces-after": 1,
+			});
 
 
 
@@ -616,9 +595,10 @@ describe("Extended Config Test Case", () => {
 				"",
 			);
 
-			assert.ok(conf.rules.colons);
-			assert.equal(conf.rules.colons["max-spaces-before"], 0);
-			assert.equal(conf.rules.colons["max-spaces-after"], 1);
+			expect(conf.rules.colons).toMatchObject({
+				"max-spaces-before": 0,
+				"max-spaces-after": 1,
+			});
 		});
 	});
 
@@ -633,8 +613,8 @@ describe("Extended Config Test Case", () => {
 
 			const conf = await newConf(`extends: ${file}\n`);
 
-			assert.equal(conf.isFileIgnored("test.template.yaml"), true);
-			assert.equal(conf.isFileIgnored("test.yaml"), false);
+			expect(conf.isFileIgnored("test.template.yaml")).toBe(true);
+			expect(conf.isFileIgnored("test.yaml")).toBe(false);
 		});
 	});
 });
@@ -651,11 +631,8 @@ describe("Extended Library Config Test Case", () => {
 
 		await fn(old, conf);
 
-		assert.deepStrictEqual(Object.keys(conf.rules).sort(), Object.keys(old.rules).sort());
-		for (const rule in conf.rules) {
-			// @ts-expect-error: ts(7053)
-			assert.deepStrictEqual(conf.rules[rule], old.rules[rule]);
-		}
+		expect(conf.rules).all.keys(Object.keys(old.rules));
+		expect(conf.rules).toStrictEqual(old.rules);
 	};
 
 	test("extends config disable rule", async () => {
@@ -679,15 +656,16 @@ describe("Extended Library Config Test Case", () => {
 			"    max-end: 44",
 			"",
 		], (old, conf) => {
-			assert.ok(old.rules["empty-lines"]);
+			expect.assert.ok(old.rules["empty-lines"]);
 			old.rules["empty-lines"].max = 42;
 			old.rules["empty-lines"]["max-start"] = 43;
 			old.rules["empty-lines"]["max-end"] = 44;
 
-			assert.ok(conf.rules["empty-lines"]);
-			assert.equal(conf.rules["empty-lines"].max, 42);
-			assert.equal(conf.rules["empty-lines"]["max-start"], 43);
-			assert.equal(conf.rules["empty-lines"]["max-end"], 44);
+			expect(conf.rules["empty-lines"]).toMatchObject({
+				max: 42,
+				"max-start": 43,
+				"max-end": 44,
+			});
 		});
 	});
 
@@ -699,13 +677,14 @@ describe("Extended Library Config Test Case", () => {
 			"    max-start: 42",
 			"",
 		], (old, conf) => {
-			assert.ok(old.rules["empty-lines"]);
+			expect.assert.ok(old.rules["empty-lines"]);
 			old.rules["empty-lines"]["max-start"] = 42;
 
-			assert.ok(conf.rules["empty-lines"]);
-			assert.equal(conf.rules["empty-lines"].max, 2);
-			assert.equal(conf.rules["empty-lines"]["max-start"], 42);
-			assert.equal(conf.rules["empty-lines"]["max-end"], 0);
+			expect(conf.rules["empty-lines"]).toMatchObject({
+				max: 2,
+				"max-start": 42,
+				"max-end": 0,
+			});
 		});
 	});
 });
@@ -727,8 +706,8 @@ describe("Ignore Config Test Case", () => {
 	let cleanup: BuildTempWorkspaceReturnType["cleanup"] = async () => {
 		// pass
 	};
-	after(() => cleanup());
-	before(async () => {
+	afterAll(() => cleanup());
+	beforeAll(async () => {
 		const temp = await buildTempWorkspace({
 			"bin/file.lint-me-anyway.yaml": badYaml,
 			"bin/file.yaml": badYaml,
@@ -750,37 +729,35 @@ describe("Ignore Config Test Case", () => {
 
 
 	test("mutually exclusive ignore keys", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"extends: default",
 			"ignore-from-file: .gitignore",
 			"ignore: |",
 			"  *.dont-line-me.yaml",
 			"  /bin/",
 			"",
-		));
+		)).rejects.toThrow();
 	});
 
 	test("ignore from file not exist", async () => {
-		await assertBasicError(() => newConf(
+		await expect(newConf(
 			"extends: default",
 			"ignore-from-file: not_found_file",
 			"",
-		), (e) => {
-			assert.ok("code" in e && e.code === "ENOENT");
-		});
+		)).rejects.toThrow("ENOENT");
 	});
 
 	test("ignore from file incorrect type", async () => {
-		await assertConfigError(() => newConf(
+		await expect(newConf(
 			"extends: default",
 			"ignore-from-file: 0",
 			"",
-		));
-		await assertConfigError(() => newConf(
+		)).rejects.toThrow();
+		await expect(newConf(
 			"extends: default",
 			"ignore-from-file: [0]",
 			"",
-		));
+		)).rejects.toThrow();
 	});
 
 
@@ -822,8 +799,8 @@ describe("Ignore Config Test Case", () => {
 
 	test("no ignore", async () => {
 		await ignoreWorkspace(undefined, ["."], ({ returncode, out }) => {
-			assert.notEqual(returncode, 0);
-			assert.deepStrictEqual(out, [
+			expect(returncode).not.toEqual(0);
+			expect(out).toStrictEqual([
 				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
 				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
 				`bin/file.lint-me-anyway.yaml:5:5: ${hyphen}`,
@@ -881,7 +858,7 @@ describe("Ignore Config Test Case", () => {
 		], [
 			".",
 		], ({ out }) => {
-			assert.deepStrictEqual(out, [
+			expect(out).toStrictEqual([
 				`.yamllint:1:1: ${docstart}`,
 				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
 				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
@@ -929,7 +906,7 @@ describe("Ignore Config Test Case", () => {
 		], [
 			".",
 		], ({ out }) => {
-			assert.deepStrictEqual(out, [
+			expect(out).toStrictEqual([
 				`.yamllint:1:1: ${docstart}`,
 				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
 				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
@@ -978,7 +955,7 @@ describe("Ignore Config Test Case", () => {
 		}, [
 			".",
 		], ({ out }) => {
-			assert.deepStrictEqual(out, [
+			expect(out).toStrictEqual([
 				`.yamllint:1:1: ${docstart}`,
 				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
 				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
@@ -1026,7 +1003,7 @@ describe("Ignore Config Test Case", () => {
 		}, [
 			".",
 		], ({ out }) => {
-			assert.deepStrictEqual(out, [
+			expect(out).toStrictEqual([
 				`.yamllint:1:1: ${docstart}`,
 				`bin/file.lint-me-anyway.yaml:3:3: ${keydup}`,
 				`bin/file.lint-me-anyway.yaml:4:17: ${trailing}`,
@@ -1066,7 +1043,7 @@ describe("Ignore Config Test Case", () => {
 			"link-404.yaml": "symlink://file-that-does-not-exist",
 		}, async ({ resolve }) => {
 			const ctx = await runContext("-f", "parsable", ".");
-			assert.notEqual(ctx.returncode, 0);
+			expect(ctx.returncode).not.toEqual(0);
 
 			await fs.writeFile(resolve(".yamllint"), [
 				"extends: default",
@@ -1077,8 +1054,8 @@ describe("Ignore Config Test Case", () => {
 
 			const { returncode, stdout } = await runContext("-f", "parsable", ".");
 			const out = splitlines(stdout).sort();
-			assert.equal(returncode, 0);
-			assert.deepStrictEqual(out, [
+			expect(returncode).toEqual(0);
+			expect(out).toStrictEqual([
 				`.yamllint:1:1: ${docstart}`,
 				`link.yaml:1:1: ${docstart}`,
 			]);
@@ -1097,7 +1074,7 @@ describe("Ignore Config Test Case", () => {
 			"file.dont-lint-me.yaml",
 			"file-at-root.yaml",
 		], ({ out }) => {
-			assert.deepStrictEqual(out, [
+			expect(out).toStrictEqual([
 				`file-at-root.yaml:4:17: ${trailing}`,
 			]);
 		});
@@ -1138,7 +1115,7 @@ describe("Ignore Config Test Case", () => {
 		await ignoreWorkspace(undefined, [
 			"-d", conf.join("\n"), ".",
 		], ({ returncode }) => {
-			assert.equal(returncode, 0);
+			expect(returncode).toEqual(0);
 		});
 	});
 });

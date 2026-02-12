@@ -17,10 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-import assert from "node:assert/strict";
-import { describe, test, before, after } from "node:test";
+import { describe, test, expect, beforeAll, afterAll } from "vitest";
 import { Readable } from "node:stream";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -72,9 +69,9 @@ const checkContext = (
 
 	const run = (key: keyof RunContextData) => {
 		if (values[key] instanceof RegExp) {
-			assert.ok(values[key].test(String(ctx[key])));
+			expect(String(ctx[key])).toMatch(values[key]);
 		} else {
-			assert.equal(ctx[key], values[key]);
+			expect(ctx[key]).toBe(values[key]);
 		}
 	};
 
@@ -92,8 +89,8 @@ describe("Command Line Test Case", () => {
 	let cleanup: BuildTempWorkspaceReturnType["cleanup"] = async () => {
 		// pass
 	};
-	after(() => cleanup());
-	before(async () => {
+	afterAll(() => cleanup());
+	beforeAll(async () => {
 		const temp = await buildTempWorkspace({
 			// .yaml file at root
 			"a.yaml": [
@@ -195,13 +192,10 @@ describe("Command Line Test Case", () => {
 			items: string[],
 			expected: string[],
 		) => {
-			assert.deepStrictEqual(
-				await findFiles(
-					(items.length ? items : [""]).map(x => p(x)),
-					conf,
-				),
-				expected.map(x => p(x)),
-			);
+			await expect(findFiles(
+				(items.length ? items : [""]).map(x => p(x)),
+				conf,
+			)).resolves.toStrictEqual(expected.map(x => p(x)));
 		};
 
 
@@ -429,11 +423,11 @@ describe("Command Line Test Case", () => {
 
 		await writeFile(config, "rules: {trailing-spaces: disable}");
 		const ctx1 = await runContext("-c", config, p("a.yaml"));
-		assert.equal(ctx1.returncode, 0);
+		expect(ctx1.returncode).toBe(0);
 
 		await writeFile(config, "rules: {trailing-spaces: enable}");
 		const ctx2 = await runContext("-c", config, p("a.yaml"));
-		assert.equal(ctx2.returncode, 1);
+		expect(ctx2.returncode).toBe(1);
 	});
 
 	test("run with user global config file", async () => {
@@ -442,11 +436,11 @@ describe("Command Line Test Case", () => {
 
 		await writeFile(config, "rules: {trailing-spaces: disable}");
 		const ctx1 = await runContext({ env, args: [p("a.yaml")] });
-		assert.equal(ctx1.returncode, 0);
+		expect(ctx1.returncode).toBe(0);
 
 		await writeFile(config, "rules: {trailing-spaces: enable}");
 		const ctx2 = await runContext({ env, args: [p("a.yaml")] });
-		assert.equal(ctx2.returncode, 1);
+		expect(ctx2.returncode).toBe(1);
 	});
 
 	test("run with user xdg config home in env", async () => {
@@ -468,11 +462,11 @@ describe("Command Line Test Case", () => {
 
 		await writeFile(YAMLLINT_CONFIG_FILE, "rules: {trailing-spaces: disable}");
 		const ctx1 = await runContext({ env, args: [p("a.yaml")] });
-		assert.equal(ctx1.returncode, 0);
+		expect(ctx1.returncode).toBe(0);
 
 		await writeFile(YAMLLINT_CONFIG_FILE, "rules: {trailing-spaces: enable}");
 		const ctx2 = await runContext({ env, args: [p("a.yaml")] });
-		assert.equal(ctx2.returncode, 1);
+		expect(ctx2.returncode).toBe(1);
 	});
 
 	test("run with locale", async () => {
@@ -488,7 +482,7 @@ describe("Command Line Test Case", () => {
 			returncode: number,
 		) => {
 			const ctx = await runContext("-d", `${locale ? `locale: ${locale}\n` : ""}rules: { key-ordering: enable }`, p(filename));
-			assert.equal(ctx.returncode, returncode);
+			expect(ctx.returncode).toBe(returncode);
 		};
 
 		/*
@@ -547,13 +541,13 @@ describe("Command Line Test Case", () => {
 	test("run one warning", async () => {
 		const filepath = p("warn.yaml");
 		const ctx = await runContext("-f", "parsable", filepath);
-		assert.equal(ctx.returncode, 0);
+		expect(ctx.returncode).toBe(0);
 	});
 
 	test("run warning in strict mode", async () => {
 		const filepath = p("warn.yaml");
 		const ctx = await runContext("-f", "parsable", "--strict", filepath);
-		assert.equal(ctx.returncode, 2);
+		expect(ctx.returncode).toBe(2);
 	});
 
 	test("run one ok file", async () => {
@@ -744,7 +738,7 @@ describe("Command Line Test Case", () => {
 			stdin: 123 as unknown as Readable,
 			args: ["-", "-f", "parsable"],
 		});
-		assert.match(stderr, /input should be a string or a stream/);
+		expect(stderr).toMatch(/input should be a string or a stream/);
 	});
 
 	test("run no warnings", async () => {
@@ -762,13 +756,13 @@ describe("Command Line Test Case", () => {
 
 		const filepath2 = p("warn.yaml");
 		const ctx2 = await runContext(filepath2, "--no-warnings", "-f", "standard");
-		assert.equal(ctx2.returncode, 0);
+		expect(ctx2.returncode).toBe(0);
 	});
 
 	test("run no warnings and strict", async () => {
 		const filepath = p("warn.yaml");
 		const ctx = await runContext(filepath, "--no-warnings", "-s");
-		assert.equal(ctx.returncode, 2);
+		expect(ctx.returncode).toBe(2);
 	});
 
 	test("run non universal newline", async () => {
@@ -803,11 +797,8 @@ describe("Command Line Test Case", () => {
 				chdir: dirname,
 				args: ["--list-files", ...configArgs, ...paths],
 			});
-			assert.equal(ctx.returncode, 0);
-			assert.deepStrictEqual(
-				splitlines(ctx.stdout).sort(),
-				filepaths,
-			);
+			expect(ctx.returncode).toBe(0);
+			expect(splitlines(ctx.stdout).sort()).toStrictEqual(filepaths);
 		};
 
 		await run(
@@ -1118,10 +1109,10 @@ describe("Command Line Encoding Test Case", () => {
 				 * file’s path is given as a command-line argument.
 				 */
 				const ctx1 = await runContext("-c", configPath, "sorted_correctly");
-				assert.equal(ctx1.returncode, 0);
+				expect(ctx1.returncode).toBe(0);
 
 				const ctx2 = await runContext("-c", configPath, "sorted_incorrectly");
-				assert.notEqual(ctx2.returncode, 0);
+				expect(ctx2.returncode).not.toBe(0);
 
 				/*
 				 * Second, make sure that encoding autodetection works when the

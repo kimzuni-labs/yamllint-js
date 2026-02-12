@@ -16,9 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-import { describe, test } from "node:test";
+import { describe, test } from "vitest";
 
 import { ruleTestCase } from "../common";
 

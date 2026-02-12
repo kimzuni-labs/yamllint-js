@@ -11,11 +11,17 @@ on:
       - main
 
 jobs:
-  tests:
+  tests-and-lint:
     if: >
       github.event_name != 'pull_request'
       || github.event.pull_request.draft == false
     permissions:
       id-token: write
       contents: read
-    uses: kimzuni-labs/workflows/.github/workflows/nodejs-lts-and-bun-ci.yml@main
+    uses: kimzuni-labs/workflows/.github/workflows/bun-ci.yml@main
+    with:
+      build: true
+      test: true
+      test-script: "test:coverage"
+      codecov-upload: true
+      lint: true

@@ -1,6 +1,9 @@
 {
   "globs": ["**/*.md"],
-  "ignores": ["CHANGELOG.md"],
+  "ignores": [
+    "CHANGELOG.md",
+    "**/node_modules/**"
+  ],
   "fix": false,
   "gitignore": true,
   "noBanner": true,

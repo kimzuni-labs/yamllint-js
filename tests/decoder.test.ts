@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises, @stylistic/line-comment-position */
+/* eslint-disable @stylistic/line-comment-position */
 
-import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { describe, test, expect } from "vitest";
 import iconv from "iconv-lite";
 
 import { B } from "../src/utils";
@@ -233,116 +232,115 @@ describe("Encoding Stuff From Common Test Case", () => {
 	test("test codecs and utf codecs", () => {
 		for (const string of TEST_STRINGS_TO_ENCODE_AT_RUNTIME) {
 			for (const codec of UTF_CODECS) {
-				assert.equal(
-					string,
+				expect(
 					iconv.decode(encode(string, codec), codec.replace(/_sig/, "")),
 					`${codec} failed to correctly encode then decode ${string}.`,
-				);
+				).toBe(string);
 			}
 		}
 	});
 
 	test("is test codec", () => {
-		assert.equal(isTestCodec("utf_32"), false);
-		assert.equal(isTestCodec("utf_32_be"), false);
-		assert.equal(isTestCodec("utf_32_be_sig"), true);
-		assert.equal(isTestCodec("utf_32_le"), false);
-		assert.equal(isTestCodec("utf_32_le_sig"), true);
+		expect(isTestCodec("utf_32")).toBe(false);
+		expect(isTestCodec("utf_32_be")).toBe(false);
+		expect(isTestCodec("utf_32_be_sig")).toBe(true);
+		expect(isTestCodec("utf_32_le")).toBe(false);
+		expect(isTestCodec("utf_32_le_sig")).toBe(true);
 
-		assert.equal(isTestCodec("utf_16"), false);
-		assert.equal(isTestCodec("utf_16_be"), false);
-		assert.equal(isTestCodec("utf_16_be_sig"), true);
-		assert.equal(isTestCodec("utf_16_le"), false);
-		assert.equal(isTestCodec("utf_16_le_sig"), true);
+		expect(isTestCodec("utf_16")).toBe(false);
+		expect(isTestCodec("utf_16_be")).toBe(false);
+		expect(isTestCodec("utf_16_be_sig")).toBe(true);
+		expect(isTestCodec("utf_16_le")).toBe(false);
+		expect(isTestCodec("utf_16_le_sig")).toBe(true);
 
-		assert.equal(isTestCodec("utf_8"), false);
-		assert.equal(isTestCodec("utf_8_be"), false);
+		expect(isTestCodec("utf_8")).toBe(false);
+		expect(isTestCodec("utf_8_be")).toBe(false);
 	});
 
 	test("iconv equivalent of test codec", () => {
-		assert.equal(iconvEquivalentOfTestCodec("utf_32_be_sig"), "utf_32");
-		assert.equal(iconvEquivalentOfTestCodec("utf_32_le_sig"), "utf_32");
-		assert.equal(iconvEquivalentOfTestCodec("utf_16_be_sig"), "utf_16");
-		assert.equal(iconvEquivalentOfTestCodec("utf_16_le_sig"), "utf_16");
+		expect(iconvEquivalentOfTestCodec("utf_32_be_sig")).toBe("utf_32");
+		expect(iconvEquivalentOfTestCodec("utf_32_le_sig")).toBe("utf_32");
+		expect(iconvEquivalentOfTestCodec("utf_16_be_sig")).toBe("utf_16");
+		expect(iconvEquivalentOfTestCodec("utf_16_le_sig")).toBe("utf_16");
 	});
 
 	test("uses bom", () => {
-		assert.equal(usesBom("utf_32"), true);
-		assert.equal(usesBom("utf_32_be"), false);
-		assert.equal(usesBom("utf_32_be_sig"), true);
-		assert.equal(usesBom("utf_32_le"), false);
-		assert.equal(usesBom("utf_32_le_sig"), true);
+		expect(usesBom("utf_32")).toBe(true);
+		expect(usesBom("utf_32_be")).toBe(false);
+		expect(usesBom("utf_32_be_sig")).toBe(true);
+		expect(usesBom("utf_32_le")).toBe(false);
+		expect(usesBom("utf_32_le_sig")).toBe(true);
 
-		assert.equal(usesBom("utf_16"), true);
-		assert.equal(usesBom("utf_16_be"), false);
-		assert.equal(usesBom("utf_16_be_sig"), true);
-		assert.equal(usesBom("utf_16_le"), false);
-		assert.equal(usesBom("utf_16_le_sig"), true);
+		expect(usesBom("utf_16")).toBe(true);
+		expect(usesBom("utf_16_be")).toBe(false);
+		expect(usesBom("utf_16_be_sig")).toBe(true);
+		expect(usesBom("utf_16_le")).toBe(false);
+		expect(usesBom("utf_16_le_sig")).toBe(true);
 
-		assert.equal(usesBom("utf_8"), false);
-		assert.equal(usesBom("utf_8_sig"), true);
+		expect(usesBom("utf_8")).toBe(false);
+		expect(usesBom("utf_8_sig")).toBe(true);
 	});
 
 	test("encoding detectable", () => {
 		// No BOM + nothing
-		assert.equal(encodingDetectable("", "utf_32_be"), false);
-		assert.equal(encodingDetectable("", "utf_32_le"), false);
+		expect(encodingDetectable("", "utf_32_be")).toBe(false);
+		expect(encodingDetectable("", "utf_32_le")).toBe(false);
 
-		assert.equal(encodingDetectable("", "utf_16_be"), false);
-		assert.equal(encodingDetectable("", "utf_16_le"), false);
+		expect(encodingDetectable("", "utf_16_be")).toBe(false);
+		expect(encodingDetectable("", "utf_16_le")).toBe(false);
 
-		assert.equal(encodingDetectable("", "utf_8"), false);
+		expect(encodingDetectable("", "utf_8")).toBe(false);
 
 		// BOM + nothing
-		assert.equal(encodingDetectable("", "utf_32"), true);
-		assert.equal(encodingDetectable("", "utf_32_be_sig"), true);
-		assert.equal(encodingDetectable("", "utf_32_le_sig"), true);
+		expect(encodingDetectable("", "utf_32")).toBe(true);
+		expect(encodingDetectable("", "utf_32_be_sig")).toBe(true);
+		expect(encodingDetectable("", "utf_32_le_sig")).toBe(true);
 
-		assert.equal(encodingDetectable("", "utf_16"), true);
-		assert.equal(encodingDetectable("", "utf_16_be_sig"), true);
-		assert.equal(encodingDetectable("", "utf_16_le_sig"), true);
+		expect(encodingDetectable("", "utf_16")).toBe(true);
+		expect(encodingDetectable("", "utf_16_be_sig")).toBe(true);
+		expect(encodingDetectable("", "utf_16_le_sig")).toBe(true);
 
-		assert.equal(encodingDetectable("", "utf_8_sig"), true);
+		expect(encodingDetectable("", "utf_8_sig")).toBe(true);
 
 		// No BOM + non-ASCII
-		assert.equal(encodingDetectable("Ⓝⓔ", "utf_32_be"), false);
-		assert.equal(encodingDetectable("ⓥⓔ", "utf_32_le"), false);
+		expect(encodingDetectable("Ⓝⓔ", "utf_32_be")).toBe(false);
+		expect(encodingDetectable("ⓥⓔ", "utf_32_le")).toBe(false);
 
-		assert.equal(encodingDetectable("ⓡ ", "utf_16_be"), false);
-		assert.equal(encodingDetectable("ⓖⓞ", "utf_16_le"), false);
+		expect(encodingDetectable("ⓡ ", "utf_16_be")).toBe(false);
+		expect(encodingDetectable("ⓖⓞ", "utf_16_le")).toBe(false);
 
-		assert.equal(encodingDetectable("ⓝⓝ", "utf_8"), false);
+		expect(encodingDetectable("ⓝⓝ", "utf_8")).toBe(false);
 
 		// No BOM + ASCII
-		assert.equal(encodingDetectable("a ", "utf_32_be"), true);
-		assert.equal(encodingDetectable("gi", "utf_32_le"), true);
+		expect(encodingDetectable("a ", "utf_32_be")).toBe(true);
+		expect(encodingDetectable("gi", "utf_32_le")).toBe(true);
 
-		assert.equal(encodingDetectable("ve", "utf_16_be"), true);
-		assert.equal(encodingDetectable(" y", "utf_16_le"), true);
+		expect(encodingDetectable("ve", "utf_16_be")).toBe(true);
+		expect(encodingDetectable(" y", "utf_16_le")).toBe(true);
 
-		assert.equal(encodingDetectable("ou", "utf_8"), true);
+		expect(encodingDetectable("ou", "utf_8")).toBe(true);
 
 		// BOM + non-ASCII
-		assert.equal(encodingDetectable("␣ⓤ", "utf_32"), true);
-		assert.equal(encodingDetectable("ⓟ␤", "utf_32_be_sig"), true);
-		assert.equal(encodingDetectable("Ⓝⓔ", "utf_32_le_sig"), true);
+		expect(encodingDetectable("␣ⓤ", "utf_32")).toBe(true);
+		expect(encodingDetectable("ⓟ␤", "utf_32_be_sig")).toBe(true);
+		expect(encodingDetectable("Ⓝⓔ", "utf_32_le_sig")).toBe(true);
 
-		assert.equal(encodingDetectable("ⓥⓔ", "utf_16"), true);
-		assert.equal(encodingDetectable("ⓡ␣", "utf_16_be_sig"), true);
-		assert.equal(encodingDetectable("ⓖⓞ", "utf_16_le_sig"), true);
+		expect(encodingDetectable("ⓥⓔ", "utf_16")).toBe(true);
+		expect(encodingDetectable("ⓡ␣", "utf_16_be_sig")).toBe(true);
+		expect(encodingDetectable("ⓖⓞ", "utf_16_le_sig")).toBe(true);
 
-		assert.equal(encodingDetectable("ⓝⓝ", "utf_8_sig"), true);
+		expect(encodingDetectable("ⓝⓝ", "utf_8_sig")).toBe(true);
 
 		// BOM + ASCII
-		assert.equal(encodingDetectable("a ", "utf_32"), true);
-		assert.equal(encodingDetectable("le", "utf_32_be_sig"), true);
-		assert.equal(encodingDetectable("t ", "utf_32_le_sig"), true);
+		expect(encodingDetectable("a ", "utf_32")).toBe(true);
+		expect(encodingDetectable("le", "utf_32_be_sig")).toBe(true);
+		expect(encodingDetectable("t ", "utf_32_le_sig")).toBe(true);
 
-		assert.equal(encodingDetectable("yo", "utf_16"), true);
-		assert.equal(encodingDetectable("u ", "utf_16_be_sig"), true);
-		assert.equal(encodingDetectable("do", "utf_16_le_sig"), true);
+		expect(encodingDetectable("yo", "utf_16")).toBe(true);
+		expect(encodingDetectable("u ", "utf_16_be_sig")).toBe(true);
+		expect(encodingDetectable("do", "utf_16_le_sig")).toBe(true);
 
-		assert.equal(encodingDetectable("wn", "utf_8_sig"), true);
+		expect(encodingDetectable("wn", "utf_8_sig")).toBe(true);
 	});
 });
 
@@ -355,18 +353,16 @@ describe("Decoder Test Case", () => {
 	}: Omit<PreEncodedTestStringInfo, "expectedOutputStr">) {
 		const actualCodec = decoder.detectEncoding(inputBytes);
 		if (expectedCodec) {
-			assert.equal(
-				expectedCodec,
+			expect(
 				actualCodec,
 				`${inputBytes.toString()} was encoded with ${expectedCodec}, but detectEncoding() returned ${actualCodec}.`,
-			);
+			).toBe(expectedCodec);
 		}
 
-		assert.equal(
+		expect(
 			isTestCodec(actualCodec),
-			false,
 			`detectEncoding("${inputBytes.toString()}") returned a codec that doesn't exists.`,
-		);
+		).toBe(false);
 	}
 
 	test("detect encoding with pre encoded strings", () => {
@@ -408,11 +404,11 @@ describe("Decoder Test Case", () => {
 		], async () => {
 			for (const YAMLLINT_FILE_ENCODING of NONSTANDARD_ENCODINGS) {
 				await envWorkspace({ YAMLLINT_FILE_ENCODING }, () => {
-					assert.equal(decoder.detectEncoding(RANDOM_BYTES), YAMLLINT_FILE_ENCODING);
+					expect(decoder.detectEncoding(RANDOM_BYTES)).toBe(YAMLLINT_FILE_ENCODING);
 				});
 			}
 		});
-		assert.ok(warn);
+		expect(warn.length).toBeGreaterThan(1);
 	});
 
 
@@ -431,11 +427,10 @@ describe("Decoder Test Case", () => {
 		);
 		if (doesAutoDetectEncodingsReturnValueMatter) {
 			const actualOutput = decoder.autoDecode(inputBytes);
-			assert.equal(
-				expectedString,
+			expect(
 				actualOutput,
 				`auto_decode("${inputBytes.toString()}") returned the wrong value.`,
-			);
+			).toBe(expectedString);
 		} else {
 			decoder.autoDecode(inputBytes);
 		}
@@ -463,11 +458,10 @@ describe("Decoder Test Case", () => {
 			}
 		}
 
-		assert.equal(
+		expect(
 			atLeastOneDecodeError,
-			false,
 			"Some of the TEST_STRINGS_TO_ENCODE_AT_RUNTIME triggered a decoding error.",
-		);
+		).toBe(false);
 	});
 
 
@@ -480,7 +474,7 @@ describe("Decoder Test Case", () => {
 				const gen = decoder.linesInFiles([filepath]);
 				const lines = [];
 				for await (const line of gen) lines.push(line);
-				assert.deepEqual(lines, strings);
+				expect(lines).toStrictEqual(strings);
 			}
 		});
 	}
