@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises, @stylistic/line-comment-position */
+/* eslint-disable @stylistic/line-comment-position */
 
-import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { describe, test, expect } from "vitest";
 import util from "node:util";
 
 import { ruleTestCase } from "../common";
@@ -84,7 +83,7 @@ describe("Indentation Stack Test Case", () => {
 	};
 
 	const run = (actual: string[], expected: string[]) => {
-		assert.deepStrictEqual(actual, expected);
+		expect(actual).toStrictEqual(expected);
 	};
 
 

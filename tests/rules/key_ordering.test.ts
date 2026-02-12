@@ -16,10 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { describe, test, expect } from "vitest";
 
 import { ruleTestCase, consoleWorkspace } from "../common";
 
@@ -320,7 +317,7 @@ describe("Key Ordering Test Case", () => {
 				]);
 			});
 
-			assert.equal(warn.trimEnd(), "Ignoring unsafe RegExp pattern: ^(a|a)*$");
+			expect(warn.trimEnd()).toBe("Ignoring unsafe RegExp pattern: ^(a|a)*$");
 		});
 	});
 });

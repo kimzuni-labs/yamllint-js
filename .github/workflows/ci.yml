@@ -19,3 +19,5 @@ jobs:
       id-token: write
       contents: read
     uses: kimzuni-labs/workflows/.github/workflows/nodejs-lts-and-bun-ci.yml@main
+    with:
+      node-test-script: "test"

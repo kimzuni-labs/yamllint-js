@@ -19,7 +19,7 @@
 
 /* eslint-disable no-console */
 
-import assert from "node:assert";
+import { expect } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import type { Readable } from "node:stream";
@@ -30,7 +30,7 @@ import yaml from "yaml";
 import iconv from "iconv-lite";
 
 import { isASCII } from "../src/utils";
-import { YamlLintConfig, YamlLintConfigError } from "../src/config";
+import { YamlLintConfig } from "../src/config";
 import * as linter from "../src/linter";
 import * as cli from "../src/cli";
 
@@ -77,22 +77,6 @@ export function iconvEquivalentOfTestCodec(testCodec: string) {
 
 export function usesBom(codec: string) {
 	return (/(_32|_16|_sig)$/).test(codec);
-}
-
-
-
-export async function assertConfigError(
-	block: () => Promise<unknown>,
-	cb?: (e: YamlLintConfigError) => unknown,
-) {
-	await assert.rejects(
-		block,
-		(e) => {
-			assert.ok(e instanceof YamlLintConfigError);
-			if (cb) cb(e);
-			return true;
-		},
-	);
 }
 
 
@@ -247,9 +231,9 @@ export const ruleTestCase = (id: string) => async (...config: string[] | [Record
 		expectedProblems.sort((a, b) => (a.lt(b) ? -1 : 1));
 		const result = linter.run(source.join("\n"), conf);
 		for await (const x of result) {
-			assert.ok(x.eq(expectedProblems.shift()), util.inspect(x));
+			expect(x.eq(expectedProblems.shift()), util.inspect(x)).toBe(true);
 		}
-		assert.ok(expectedProblems.length === 0);
+		expect(expectedProblems).toHaveLength(0);
 	};
 };
 

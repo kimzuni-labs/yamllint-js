@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises, @stylistic/line-comment-position */
+/* eslint-disable @stylistic/line-comment-position */
 
-import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { describe, test, expect } from "vitest";
 
-import { ruleTestCase, consoleWorkspace, assertConfigError } from "../common";
+import { ruleTestCase, consoleWorkspace } from "../common";
 
 
 
@@ -49,7 +48,7 @@ describe("Options Test Case", () => {
 				]);
 			});
 
-			assert.equal(warn.trimEnd(), "Ignoring unsafe RegExp pattern: ^(b|b)*$");
+			expect(warn.trimEnd()).toBe("Ignoring unsafe RegExp pattern: ^(b|b)*$");
 		});
 	});
 });
@@ -465,23 +464,23 @@ describe("Quoted Values Test Case", () => {
 		test("extras", async () => {
 			let check: Awaited<ReturnType<typeof conf>>;
 
-			await assertConfigError(() => conf(
+			await expect(conf(
 				"quoted-strings:",
 				"  required: true",
 				"  extra-allowed: [^http://]",
-			));
+			)).rejects.toThrow();
 
-			await assertConfigError(() => conf(
+			await expect(conf(
 				"quoted-strings:",
 				"  required: true",
 				"  extra-required: [^http://]",
-			));
+			)).rejects.toThrow();
 
-			await assertConfigError(() => conf(
+			await expect(conf(
 				"quoted-strings:",
 				"  required: false",
 				"  extra-allowed: [^http://]",
-			));
+			)).rejects.toThrow();
 
 
 
@@ -1167,26 +1166,26 @@ describe("Quoted Keys Test Case", () => {
 		test("extras", async () => {
 			let check: Awaited<ReturnType<typeof conf>>;
 
-			await assertConfigError(() => conf(
+			await expect(conf(
 				"quoted-strings:",
 				"  check-keys: true",
 				"  required: true",
 				"  extra-allowed: [^http://]",
-			));
+			)).rejects.toThrow();
 
-			await assertConfigError(() => conf(
+			await expect(conf(
 				"quoted-strings:",
 				"  check-keys: true",
 				"  required: true",
 				"  extra-required: [^http://]",
-			));
+			)).rejects.toThrow();
 
-			await assertConfigError(() => conf(
+			await expect(conf(
 				"quoted-strings:",
 				"  check-keys: true",
 				"  required: false",
 				"  extra-allowed: [^http://]",
-			));
+			)).rejects.toThrow();
 
 
 

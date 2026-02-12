@@ -16,10 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { describe, test, expect } from "vitest";
 
 import type { TokenData, ScalarAdditionalData } from "../src/types";
 import {
@@ -40,25 +37,25 @@ describe("Parser Test Case", () => {
 		{ lineNo, start, end }: Line,
 		...data: [lineNo: number, start: number, end: number]
 	) => {
-		assert.deepStrictEqual([lineNo, start, end], data);
+		expect([lineNo, start, end]).toStrictEqual(data);
 	};
 
 	test("line generator", () => {
 		let e: Line[];
 
 		e = getLines("");
-		assert.equal(e.length, 1);
+		expect(e).toHaveLength(1);
 		lineChecker(e[0], 1, 0, 0);
 
 		e = getLines("\n");
-		assert.equal(e.length, 2);
+		expect(e).toHaveLength(2);
 
 		e = getLines(" \n");
-		assert.equal(e.length, 2);
+		expect(e).toHaveLength(2);
 		lineChecker(e[0], 1, 0, 1);
 
 		e = getLines("\n\n");
-		assert.equal(e.length, 3);
+		expect(e).toHaveLength(3);
 
 		e = getLines(
 			"---",
@@ -67,11 +64,11 @@ describe("Parser Test Case", () => {
 			"",
 			"3",
 		);
-		assert.equal(e.length, 5);
-		assert.equal(e[0].lineNo, 1);
-		assert.equal(e[0].content, "---");
-		assert.equal(e[2].content, "line 2");
-		assert.equal(e[3].content, "");
+		expect(e).toHaveLength(5);
+		expect(e[0].lineNo).toBe(1);
+		expect(e[0].content).toBe("---");
+		expect(e[2].content).toBe("line 2");
+		expect(e[3].content).toBe("");
 
 		e = getLines(
 			"test with",
@@ -79,10 +76,10 @@ describe("Parser Test Case", () => {
 			"at the end",
 			"",
 		);
-		assert.equal(e.length, 4);
-		assert.equal(e[2].lineNo, 3);
-		assert.equal(e[2].content, "at the end");
-		assert.equal(e[3].lineNo, 4);
+		expect(e).toHaveLength(4);
+		expect(e[2].lineNo).toBe(3);
+		expect(e[2].content).toBe("at the end");
+		expect(e[3].lineNo).toBe(4);
 	});
 
 
@@ -101,24 +98,24 @@ describe("Parser Test Case", () => {
 		];
 
 		const e = Array.from(tokenGenerator(source.join("\n")));
-		assert.ok(!e.some(x => ["newline", "comment", "space"].includes(x.data.type)));
-		assert.equal(e[0].parent, null);
-		assert.equal(e[5].prev?.prev?.prev?.prev?.prev?.prev, null);
-		assert.deepStrictEqual(e[0], e[5].prev.prev.prev.prev.prev);
-		assert.deepStrictEqual(e[13].prev?.prev?.prev?.prev?.prev, e[8]);
-		assert.deepStrictEqual(e[13].next?.next?.next?.next?.next, e[18]);
-		assert.equal(e[18].parent?.parent?.parent?.parent, null);
-		assert.equal(e[e.length - 1].next, null);
+		expect(e.some(x => ["newline", "comment", "space"].includes(x.data.type))).toBe(false);
+		expect(e[0].parent).toBeNull();
+		expect(e[5].prev?.prev?.prev?.prev?.prev?.prev).toBeNull();
+		expect(e[5].prev?.prev?.prev?.prev?.prev).toBe(e[0]);
+		expect(e[13].prev?.prev?.prev?.prev?.prev).toBe(e[8]);
+		expect(e[13].next?.next?.next?.next?.next).toBe(e[18]);
+		expect(e[18].parent?.parent?.parent?.parent).toBeNull();
+		expect(e[e.length - 1].next).toBeNull();
 
 		const t = tokenGenerator(source.join("\n"));
 		for (let i = 0; i < 22; i++) t.next();
 		const curr = t.next().value;
-		assert.ok(curr);
-		assert.ok(curr.parent?.parent?.parent);
-		assert.ok(curr.prev?.prev?.prev?.prev);
-		assert.ok(curr.next?.next);
-		assert.equal(curr.next.next.next, undefined);
-		t.next(); assert.ok(curr.next.next.next);
+		expect(curr).toBeInstanceOf(Token);
+		expect(curr?.parent?.parent?.parent).toBeInstanceOf(Token);
+		expect(curr?.prev?.prev?.prev?.prev).toBeInstanceOf(Token);
+		expect(curr?.next?.next).toBeInstanceOf(Token);
+		expect(curr?.next?.next?.next).toBeUndefined();
+		t.next(); expect(curr?.next?.next?.next).toBeInstanceOf(Token);
 	});
 
 
@@ -130,34 +127,34 @@ describe("Parser Test Case", () => {
 		column: number,
 		content: string,
 	) => {
-		assert.ok(comment instanceof Comment);
-		assert.ok(comment.equals(new Comment(line, column, content, 0)));
+		expect.assert.ok(comment instanceof Comment);
+		expect(comment.equals(new Comment(line, column, content, 0))).toBe(true);
 	};
 
 	test("token or comment generator", () => {
 		let e: Array<Token | Comment>;
 
 		e = getTokOrCom("a:b");
-		assert.equal(e.length, 2);
-		assert.ok(e[0] instanceof Token);
-		assert.equal(e[0].prev, null);
-		assert.ok(e[0].next instanceof Token);
-		assert.ok(e[1] instanceof Token);
-		assert.deepStrictEqual(e[1].prev, e[0]);
-		assert.deepStrictEqual(e[1], e[0].next);
-		assert.equal(e[1].next, null);
+		expect(e).toHaveLength(2);
+		expect.assert.ok(e[0] instanceof Token);
+		expect(e[0].prev).toBeNull();
+		expect(e[0].next).toBeInstanceOf(Token);
+		expect.assert.ok(e[1] instanceof Token);
+		expect(e[1].prev).toBe(e[0]);
+		expect(e[1]).toBe(e[0].next);
+		expect(e[1].next).toBeNull();
 
 		e = getTokOrCom(
 			"---",
 			"k: v",
 		);
-		assert.equal(e.length, 6);
-		assert.ok(e[3] instanceof Token);
-		assert.equal(e[3].isKey, true);
-		assert.equal(e[3].isValue, false);
-		assert.ok(e[5] instanceof Token);
-		assert.equal(e[5].isKey, false);
-		assert.equal(e[5].isValue, true);
+		expect(e).toHaveLength(6);
+		expect.assert.ok(e[3] instanceof Token);
+		expect(e[3].isKey).toBe(true);
+		expect(e[3].isValue).toBe(false);
+		expect.assert.ok(e[5] instanceof Token);
+		expect(e[5].isKey).toBe(false);
+		expect(e[5].isValue).toBe(true);
 
 		e = getTokOrCom(
 			"# start comment",
@@ -169,7 +166,7 @@ describe("Parser Test Case", () => {
 			"- c",
 			"# end comment",
 		);
-		assert.equal(e.length, 17);
+		expect(e).toHaveLength(17);
 		commentChecker(e[0], 1, 1, "# start comment");
 		commentChecker(e[10], 3, 13, "# key=val");
 		commentChecker(e[11], 4, 1, "# this is");
@@ -215,17 +212,17 @@ describe("Parser Test Case", () => {
 			"- data   # inline comment",
 		);
 		const c = e.filter(x => x instanceof Comment);
-		assert.equal(c.length, 10);
-		assert.equal(c[0].isInline(), false);
-		assert.equal(c[1].isInline(), false);
-		assert.equal(c[2].isInline(), true);
-		assert.equal(c[3].isInline(), false);
-		assert.equal(c[4].isInline(), false);
-		assert.equal(c[5].isInline(), true);
-		assert.equal(c[6].isInline(), true);
-		assert.equal(c[7].isInline(), true);
-		assert.equal(c[8].isInline(), false);
-		assert.equal(c[9].isInline(), true);
+		expect(c).toHaveLength(10);
+		expect(c[0].isInline()).toBe(false);
+		expect(c[1].isInline()).toBe(false);
+		expect(c[2].isInline()).toBe(true);
+		expect(c[3].isInline()).toBe(false);
+		expect(c[4].isInline()).toBe(false);
+		expect(c[5].isInline()).toBe(true);
+		expect(c[6].isInline()).toBe(true);
+		expect(c[7].isInline()).toBe(true);
+		expect(c[8].isInline()).toBe(false);
+		expect(c[9].isInline()).toBe(true);
 	});
 
 
@@ -236,12 +233,12 @@ describe("Parser Test Case", () => {
 		type: TokenData["type"],
 		add: ScalarAdditionalData & { hasPrev?: boolean } = {},
 	) => {
-		assert.ok(value instanceof Token);
+		expect(value).toBeInstanceOf(Token);
 		const token = value as Token;
-		assert.equal(token.data.type, type);
-		if (add.hasPrev !== undefined) assert.equal(!!token.prev, add.hasPrev);
-		if (add.isKey !== undefined) assert.equal(token.isKey, add.isKey);
-		if (add.isValue !== undefined) assert.equal(token.isValue, add.isValue);
+		expect(token.data.type).toBe(type);
+		if (add.hasPrev !== undefined) expect(!!token.prev).toBe(add.hasPrev);
+		if (add.isKey !== undefined) expect(token.isKey).toBe(add.isKey);
+		if (add.isValue !== undefined) expect(token.isValue).toBe(add.isValue);
 	};
 
 	test("token or comment or line generator", () => {
@@ -250,16 +247,16 @@ describe("Parser Test Case", () => {
 			"k: v  # k=v",
 			"",
 		);
-		assert.equal(e.length, 10);
+		expect(e).toHaveLength(10);
 		tokenTypeChecker(e[0], "document", { hasPrev: false });
 		tokenTypeChecker(e[1], "doc-start");
-		assert.ok(e[2] instanceof Line);
+		expect(e[2]).toBeInstanceOf(Line);
 		tokenTypeChecker(e[3], "block-map");
 		tokenTypeChecker(e[4], "scalar", { isKey: true, isValue: false });
 		tokenTypeChecker(e[5], "map-value-ind", { isKey: undefined, isValue: undefined });
 		tokenTypeChecker(e[6], "scalar", { isKey: false, isValue: true });
-		assert.ok(e[7] instanceof Comment);
-		assert.ok(e[8] instanceof Line);
-		assert.ok(e[9] instanceof Line);
+		expect(e[7]).toBeInstanceOf(Comment);
+		expect(e[8]).toBeInstanceOf(Line);
+		expect(e[9]).toBeInstanceOf(Line);
 	});
 });

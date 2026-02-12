@@ -16,25 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { describe, test, expect } from "vitest";
 import { Readable } from "node:stream";
 import util from "node:util";
 import iconv from "iconv-lite";
 
+import { arrayFromAsync } from "./common";
 import { YamlLintConfig } from "../src/config";
 import * as linter from "../src/linter";
-
-import { arrayFromAsync } from "./common";
 
 
 
 type Problems = ReturnType<typeof linter.run>;
 
 const isRejects = async (problems: Problems) => {
-	await assert.rejects(() => arrayFromAsync(problems));
+	await expect(arrayFromAsync(problems)).rejects.toThrow();
 };
 
 describe("Linter Test Case", () => {
@@ -79,11 +75,11 @@ describe("Linter Test Case", () => {
 
 	test("linter problem repr without rule", () => {
 		const problem = new linter.LintProblem(1, 2, "problem");
-		assert.equal(util.inspect(problem), "1:2: problem");
+		expect(util.inspect(problem)).toBe("1:2: problem");
 	});
 
 	test("linter problem repr with rule", () => {
 		const problem = new linter.LintProblem(1, 2, "problem", "rule-id");
-		assert.equal(util.inspect(problem), "1:2: problem (rule-id)");
+		expect(util.inspect(problem)).toBe("1:2: problem (rule-id)");
 	});
 });

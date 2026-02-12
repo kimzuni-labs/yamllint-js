@@ -16,10 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
-import assert from "node:assert/strict";
-import { describe, test, before, after } from "node:test";
+import { describe, test, expect, beforeAll, afterAll } from "vitest";
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -85,11 +82,11 @@ describe("Module Test Case", () => {
 	let cleanup: BuildTempWorkspaceReturnType["cleanup"] = async () => {
 		// pass
 	};
-	after(() => Promise.all([
+	afterAll(() => Promise.all([
 		cleanup(),
 		fs.rm(dist, { recursive: true }),
 	]));
-	before(async () => {
+	beforeAll(async () => {
 		const temp = await buildTempWorkspace({
 			// file with only one warning
 			"warn.yaml": "key: value\n",
@@ -112,25 +109,25 @@ describe("Module Test Case", () => {
 
 	const check = (output: string, filepath: string, problems: string[]) => {
 		const [line, ...lines] = splitlines(output);
-		assert.ok(line.includes(filepath));
-		assert.deepStrictEqual(lines, problems);
+		expect(line).toContain(filepath);
+		expect(lines).toStrictEqual(problems);
 	};
 
 	test("run module no args", async () => {
 		const ctx = await run();
-		assert.notEqual(ctx.returncode, 0);
-		assert.ok(ctx.output.startsWith("usage: yamllint"));
+		expect(ctx.returncode).not.toBe(0);
+		expect(ctx.output).toMatch(/^usage: yamllint/);
 	});
 
 	test("run module version", async () => {
 		const ctx = await run("--version");
-		assert.equal(ctx.returncode, 0);
-		assert.equal(ctx.output.trimEnd(), APP.VERSION);
+		expect(ctx.returncode).toBe(0);
+		expect(ctx.output.trimEnd()).toBe(APP.VERSION);
 	});
 
 	test("run module on bad dir", async () => {
 		const ctx = await run("/does/not/exist");
-		assert.ok(ctx.output.includes("no such file or directory"));
+		expect(ctx.output).toMatch("no such file or directory");
 	});
 
 	test("run module on file", async () => {
@@ -143,7 +140,7 @@ describe("Module Test Case", () => {
 
 	test("run module on dir", async () => {
 		const ctx = await run(resolve());
-		assert.equal(ctx.returncode, 1);
+		expect(ctx.returncode).toBe(1);
 
 		const files = ctx.output.split("\n\n");
 		check(files[0], "/warn.yaml", [
