@@ -405,13 +405,13 @@ export async function run(argv = hideBin(process.argv), stdin: Readable = proces
 		}
 	}
 
-	let returnCode;
+	let exitCode;
 	if (maxLevel === PROBLEM_LEVELS.error) {
-		returnCode = 1;
+		exitCode = 1;
 	} else if (maxLevel === PROBLEM_LEVELS.warning) {
-		returnCode = args.strict !== true ? 0 : 2;
+		exitCode = args.strict !== true ? 0 : 2;
 	} else {
-		returnCode = 0;
+		exitCode = 0;
 	}
-	process.exitCode = returnCode;
+	process.exitCode = exitCode;
 }
