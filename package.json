@@ -23,8 +23,7 @@
     "lint:eslint": "eslint .",
     "lint:markdown": "markdownlint-cli2",
     "lint:yaml": "tsx src/cli.ts -c yamllint.self.config.js .",
-    "build": "tsdown",
-    "local:test:matrix": "# bun test && nvm use v20 && npm run test:all && nvm use v22 && npm run test && nvm use v24 && npm run test && bun lint"
+    "build": "tsdown"
   },
   "files": [
     "dist",
