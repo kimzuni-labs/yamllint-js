@@ -1,9 +1,0 @@
-[test]
-root = "./tests"
-coverageReporter = ["text", "lcov"]
-coverageSkipTestFiles = true
-coveragePathIgnorePatterns = [
-	"src/main.ts",
-	"**/tests/**",
-	"**/tmp/**",
-]
