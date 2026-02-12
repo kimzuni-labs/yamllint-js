@@ -52,7 +52,7 @@ export async function* findFilesRecursively(items: string[], conf: YamlLintConfi
 			.catch(() => false);
 
 		if (isDirectory) {
-			if (item.endsWith("node_modules")) continue;
+			if (path.basename(item) === "node_modules") continue;
 
 			const dirents = await fs.readdir(item, { withFileTypes: true, recursive: false, encoding: "utf-8" });
 
