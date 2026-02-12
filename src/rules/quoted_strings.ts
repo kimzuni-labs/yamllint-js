@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2018 ClearScore
  * Copyright (C) 2025 kimzuni
  *

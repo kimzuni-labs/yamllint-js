@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2023–2025 Jason Yundt
  * Copyright (C) 2025 kimzuni
  *

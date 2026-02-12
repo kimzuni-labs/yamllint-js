@@ -5,6 +5,11 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "src/**"
+      - "package.json"
+      - "tsdown.config.js"
+      - "tsconfig.json"
 
 jobs:
   release-please:

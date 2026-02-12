@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2017 Adrien Vergé
  * Copyright (C) 2025 kimzuni
  *

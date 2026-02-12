@@ -14,13 +14,6 @@ This project uses [Bun](https://bun.sh/) for a faster runtime during development
 
 However, **contributors do not need to use Bun** — Node.js is fully supported.
 
-If you prefer Node.js, make sure you’re using **v20 or higher**.
-
-> [!NOTE]
-> You can use **Bun** instead of **npm** unless stated otherwise.
->
-> For example, `npm install` can be replaced with `bun install`.
-
 
 
 ## 🚀 Setup
@@ -42,12 +35,6 @@ Clone the repository and install dependencies.
 
 ## 🎨 Linting
 
-This project uses the following tools to maintain code quality:
-
-- [ESLint](http://eslint.org/) (with [typescript-eslint](https://typescript-eslint.io/) and [ESLint Stylistic](https://eslint.style/))
-- [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)
-- [yamllint-js](https://github.com/kimzuni-labs/yamllint-js)
-
 You can run all lint checks with:
 
 ```shell
@@ -58,20 +45,23 @@ Or run them individually:
 
 ```shell
 npm run lint:eslint
+npm run lint:types
 npm run lint:markdown
 npm run lint:yaml
 ```
 
 ## 🧪 Testing
 
+Run a build first:
+
+```shell
+npm run build
+```
+
 Make sure your changes work as expected.
 
 ```shell
 npm run test
-# or (for node v20)
-npm run test:all
-# or (faster)
-bun test
 ```
 
 

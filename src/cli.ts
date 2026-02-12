@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2016 Adrien Vergé
  * Copyright (C) 2025 kimzuni
  *
@@ -52,7 +52,7 @@ export async function* findFilesRecursively(items: string[], conf: YamlLintConfi
 			.catch(() => false);
 
 		if (isDirectory) {
-			if (item.endsWith("node_modules")) continue;
+			if (path.basename(item) === "node_modules") continue;
 
 			const dirents = await fs.readdir(item, { withFileTypes: true, recursive: false, encoding: "utf-8" });
 
@@ -405,13 +405,13 @@ export async function run(argv = hideBin(process.argv), stdin: Readable = proces
 		}
 	}
 
-	let returnCode;
+	let exitCode;
 	if (maxLevel === PROBLEM_LEVELS.error) {
-		returnCode = 1;
+		exitCode = 1;
 	} else if (maxLevel === PROBLEM_LEVELS.warning) {
-		returnCode = args.strict !== true ? 0 : 2;
+		exitCode = args.strict !== true ? 0 : 2;
 	} else {
-		returnCode = 0;
+		exitCode = 0;
 	}
-	process.exitCode = returnCode;
+	process.exitCode = exitCode;
 }

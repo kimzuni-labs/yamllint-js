@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2022 the yamllint contributors
  * Copyright (C) 2025 kimzuni
  *

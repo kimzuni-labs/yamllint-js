@@ -19,10 +19,11 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --coverage --ui",
-    "lint": "markdownlint-cli2 && npm run lint:yaml && eslint .",
+    "lint": "markdownlint-cli2 && npm run lint:yaml && eslint . && tsc --noEmit",
     "lint:eslint": "eslint .",
+    "lint:types": "tsc --noEmit",
     "lint:markdown": "markdownlint-cli2",
-    "lint:yaml": "tsx src/cli.ts -c yamllint.self.config.js .",
+    "lint:yaml": "node dist/main.mjs -c yamllint.self.config.js . 2> /dev/null || tsx src/main.ts -c yamllint.self.config.js .",
     "build": "tsdown"
   },
   "files": [

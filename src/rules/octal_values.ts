@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2017 ScienJus
  * Copyright (C) 2025 kimzuni
  *

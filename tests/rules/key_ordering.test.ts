@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2017 Johannes F. Knauf
  * Copyright (C) 2025 kimzuni
  *
