@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/*
+/*!
  * Copyright (C) 2016 Adrien Vergé
  * Copyright (C) 2025 kimzuni
  *

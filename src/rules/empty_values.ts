@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2017 Greg Dubicki
  * Copyright (C) 2025 kimzuni
  *

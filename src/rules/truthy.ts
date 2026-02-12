@@ -1,4 +1,4 @@
-/*
+/*!
  * Copyright (C) 2016 Peter Ericson
  * Copyright (C) 2025 kimzuni
  *

@@ -223,7 +223,10 @@ export default defineConfig(
 				"always",
 				{
 					line: { exceptions: ["/"] },
-					block: { exceptions: ["*"] },
+					block: {
+						exceptions: ["*"],
+						markers: ["!"],
+					},
 				},
 			],
 			"@stylistic/switch-colon-spacing": ["error", { before: false, after: true }],
