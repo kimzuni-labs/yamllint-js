@@ -77,7 +77,6 @@ export class Token<T extends TokenData | ParentTokenData = TokenData> {
 	resolve: ReturnType<typeof yaml.CST.resolveAsScalar>;
 
 	constructor(
-		readonly depth: number,
 		readonly lineNo: number,
 		readonly buffer: string,
 		readonly data: T,
@@ -102,19 +101,26 @@ export class Token<T extends TokenData | ParentTokenData = TokenData> {
 		}
 	}
 
+	#isBlockEnd: boolean | undefined;
 	get isBlockEnd() {
 		if (this.next === undefined) {
 			throw new Error("Cannot determine isBlockEnd: next token not yet linked");
 		}
-		if (!this.parent) return false;
-		if (this.next === null) return true;
-		if (this.endMark.line === this.next.startMark.line) return false;
 
-		let target: Token | null | undefined = this.next;
-		while (target && target.depth > this.depth) {
-			target = target.parent;
+		if (this.#isBlockEnd === undefined) {
+			if (!this.parent) return false;
+			if (this.next === null) return true;
+			if (this.endMark.line === this.next.startMark.line) return false;
+			assert("indent" in this.data);
+			if (this.data.type.endsWith("-end")) {
+				return (
+					!("indent" in this.next.data)
+					|| this.data.indent > this.next.data.indent
+				);
+			}
+			this.#isBlockEnd = this.parent !== this.next.parent;
 		}
-		return this.parent !== target?.parent;
+		return this.#isBlockEnd;
 	}
 }
 
@@ -239,7 +245,6 @@ export function* tokenGenerator(buffer: string): G<Token> {
 	 * link only `parent`
 	 */
 	const toToken = (
-		depth: number,
 		token: yaml.CST.Token,
 		parent?: Token<ParentTokenData>,
 		{
@@ -260,7 +265,6 @@ export function* tokenGenerator(buffer: string): G<Token> {
 		const endMark = "source" in token ? getMark(token.offset + token.source.length) : { ...startMark };
 		const isData = { isKey, isValue };
 		return new Token(
-			depth,
 			startMark.line,
 			buffer,
 			token,
@@ -275,7 +279,6 @@ export function* tokenGenerator(buffer: string): G<Token> {
 	};
 
 	function* flat(
-		depth: number,
 		token: yaml.CST.Token,
 		parent?: Token<ParentTokenData>,
 		data?: ScalarAdditionalData,
@@ -285,55 +288,54 @@ export function* tokenGenerator(buffer: string): G<Token> {
 			|| token.type.includes("error")
 		) return;
 
-		const newToken = toToken(depth, token, parent, data);
+		const newToken = toToken(token, parent, data);
 		yield newToken;
 		const pToken = newToken as Token<ParentTokenData>;
-		depth++;
 
 		if ("start" in token) {
 			const items = Array.isArray(token.start) ? token.start : [token.start];
 			for (const start of items) {
-				yield* flat(depth, start, pToken);
+				yield* flat(start, pToken);
 			}
 		}
 
 		if ("props" in token) {
 			for (const prop of token.props) {
-				yield* flat(depth, prop, pToken);
+				yield* flat(prop, pToken);
 			}
 		}
 
 		if ("items" in token) {
 			for (const item of token.items) {
 				for (const start of item.start) {
-					yield* flat(depth, start, pToken);
+					yield* flat(start, pToken);
 				}
 				if (item.key) {
-					yield* flat(depth, item.key, pToken, { isKey: !!item.sep?.length });
+					yield* flat(item.key, pToken, { isKey: !!item.sep?.length });
 				}
 				for (const sep of item.sep ?? []) {
-					yield* flat(depth, sep, pToken);
+					yield* flat(sep, pToken);
 				}
 				if (item.value) {
-					yield* flat(depth, item.value, pToken, { isValue: true });
+					yield* flat(item.value, pToken, { isValue: true });
 				}
 			}
 		}
 
 		if ("value" in token && token.value) {
-			yield* flat(depth, token.value, pToken);
+			yield* flat(token.value, pToken);
 		}
 
 		if ("end" in token) {
 			for (const end of token.end ?? []) {
-				yield* flat(depth, end, pToken);
+				yield* flat(end, pToken);
 			}
 		}
 	}
 
 	function* run(): G<Token> {
 		for (const token of loader) {
-			yield* flat(0, token);
+			yield* flat(token);
 		}
 	}
 

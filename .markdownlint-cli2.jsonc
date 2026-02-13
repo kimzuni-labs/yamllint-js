@@ -233,9 +233,6 @@
     "MD044": {
       // List of proper names
       "names": [
-        "API",
-        "Elysia",
-        "Swagger"
       ],
       // Include code blocks
       "code_blocks": false,

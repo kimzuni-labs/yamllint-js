@@ -18,8 +18,6 @@
 
 import { describe, test, expect, beforeAll, afterAll } from "vitest";
 import { spawn } from "node:child_process";
-import fs from "node:fs/promises";
-import path from "node:path";
 
 import { APP } from "../src/constants";
 import { splitlines } from "../src/utils";
@@ -29,10 +27,11 @@ import {
 	type BuildTempWorkspaceReturnType,
 } from "./common";
 
+import pkg from "../package.json";
 
 
-const dist = path.join(process.cwd(), await fs.mkdtemp("dist-"));
-const cli = path.join(dist, "main.mjs");
+
+const cli = pkg.bin.yamllint;
 
 function run(...args: string[]) {
 	return new Promise<{
@@ -64,17 +63,6 @@ function run(...args: string[]) {
 	});
 }
 
-const build = () => new Promise<boolean>((resolve) => {
-	const child = spawn("npm", ["run", "build", "--", "-d", dist, "--dts", "false"]);
-
-	child.once("exit", () => {
-		resolve(true);
-	});
-	child.once("error", () => {
-		resolve(false);
-	});
-});
-
 
 
 describe("Module Test Case", () => {
@@ -82,10 +70,7 @@ describe("Module Test Case", () => {
 	let cleanup: BuildTempWorkspaceReturnType["cleanup"] = async () => {
 		// pass
 	};
-	afterAll(() => Promise.all([
-		cleanup(),
-		fs.rm(dist, { recursive: true }),
-	]));
+	afterAll(cleanup);
 	beforeAll(async () => {
 		const temp = await buildTempWorkspace({
 			// file with only one warning
@@ -96,15 +81,6 @@ describe("Module Test Case", () => {
 		});
 		resolve = temp.resolve;
 		cleanup = temp.cleanup;
-
-		try {
-			// eslint-disable-next-line no-console
-			console.log("building...");
-			await build();
-		} catch (e) {
-			console.error("Failed");
-			throw e;
-		}
 	});
 
 	const check = (output: string, filepath: string, problems: string[]) => {
