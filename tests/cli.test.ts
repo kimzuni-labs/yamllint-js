@@ -154,6 +154,16 @@ describe("Command Line Test Case", () => {
 				"a: true",
 				"A: true",
 			],
+
+			// node_modules
+			"node_modules/path/to/file.yaml": [
+				"a: 1",
+			],
+
+			// node_modules
+			"subdir/node_modules/path/to/file.yaml": [
+				"b: 2",
+			],
 		});
 		dirname = temp.dirname;
 		resolve = temp.resolve;
