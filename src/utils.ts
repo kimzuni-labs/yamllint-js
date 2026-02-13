@@ -66,12 +66,20 @@ export function bufferStartsWith(buf: Buffer, prefix: Buffer, position = 0) {
 }
 
 
+
 /**
  * Returns a wrapper that calls `fn` at most once.
  *
  * @example
  *
  * ```typescript
+ * const onceFn = once(() => {
+ *   console.log("logging");
+ *   return "data";
+ * });
+ * console.log(onceFn()); // "logging", "data"
+ * console.log(onceFn()); // undefined
+ *
  * const onceFn = once(() => {
  *   console.log("logging");
  *   return "data";
@@ -111,9 +119,9 @@ export const formatErrorMessage = (prefix: string, e: unknown) => `${prefix}${e 
  * @example
  *
  * ```typescript
- * toKebabCase("fooBar") === "foo-bar"
- * toKebabCase("foo-bar") === "foo-bar"
- * toKebabCase("foo_bar") === "foo-bar"
+ * toKebabCase("kebab-case") === "kebab-case"
+ * toKebabCase("camelCase") === "camel-case"
+ * toKebabCase("PascalCase") === "pascal-case"
  * ```
  */
 export const toKebabCase = (string: string) => {

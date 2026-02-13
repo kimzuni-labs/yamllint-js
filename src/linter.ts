@@ -256,14 +256,14 @@ export function* getSyntaxErrors(buffer: string) {
 	}
 }
 
-
-
 function* _run(buffer: string | Buffer, conf: YamlLintConfig, filepath?: string) {
 	if (typeof buffer !== "string") {
 		buffer = decoder.autoDecode(buffer);
 	}
 
-	const firstLine = parser.lineGenerator(buffer).next().value?.content ?? "";
+	const next = parser.lineGenerator(buffer).next();
+	assert(next.value);
+	const firstLine = next.value.content;
 	if (DISABLE_FILE_PATTERN.test(firstLine)) {
 		return;
 	}

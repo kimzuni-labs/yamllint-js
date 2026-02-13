@@ -139,7 +139,6 @@ export async function showProblems(
 	let maxLevel = 0;
 	let first = true;
 
-	argsFormat = formatTypes.includes(argsFormat) ? argsFormat : "auto";
 	if (argsFormat === "auto") {
 		if (process.env.GITHUB_ACTIONS !== undefined && process.env.GITHUB_WORKFLOW !== undefined) {
 			argsFormat = "github";

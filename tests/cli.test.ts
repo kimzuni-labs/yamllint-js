@@ -17,10 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { describe, test, expect, beforeAll, afterAll } from "vitest";
+import { vi, describe, test, expect, beforeAll, afterAll } from "vitest";
 import { Readable } from "node:stream";
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 import glob from "fast-glob";
 
 import { APP } from "../src/constants";
@@ -153,6 +154,16 @@ describe("Command Line Test Case", () => {
 				"---",
 				"a: true",
 				"A: true",
+			],
+
+			// node_modules
+			"node_modules/path/to/file.yaml": [
+				"a: 1",
+			],
+
+			// node_modules
+			"subdir/node_modules/path/to/file.yaml": [
+				"b: 2",
 			],
 		});
 		dirname = temp.dirname;
@@ -353,6 +364,15 @@ describe("Command Line Test Case", () => {
 		await run(conf, [
 		], [
 			"non-ascii/éçäγλνπ¥/utf-8",
+		]);
+	});
+
+	test("run with help option", async () => {
+		const ctx = await runContext("--help");
+		checkContext(ctx, [
+			0,
+			/^usage/,
+			"",
 		]);
 	});
 
@@ -592,6 +612,52 @@ describe("Command Line Test Case", () => {
 			`${filepath}:3:1: [error] duplication of key "key" in mapping (key-duplicates)`,
 			"",
 		]);
+	});
+
+	describe("should detect supported color", () => {
+		test("win32", async () => {
+			await withTTYWorkspace(async () => {
+				let platformSpy;
+				try {
+					platformSpy = vi.spyOn(os, "platform").mockImplementation(() => "win32");
+					const filepath = p("a.yaml");
+
+					await expect(runContext({
+						env: {},
+						args: [filepath],
+					}).then(x => x.stdout)).resolves.not.toMatch("\x1b");
+
+					await expect(runContext({
+						env: { ANSICON: "" },
+						args: [filepath],
+					}).then(x => x.stdout)).resolves.toMatch("\x1b");
+
+					await expect(runContext({
+						env: { TERM: "ANSI" },
+						args: [filepath],
+					}).then(x => x.stdout)).resolves.toMatch("\x1b");
+				} finally {
+					platformSpy?.mockRestore();
+				}
+			});
+		});
+
+		test("linux", async () => {
+			await withTTYWorkspace(async () => {
+				let platformSpy;
+				try {
+					platformSpy = vi.spyOn(os, "platform").mockImplementation(() => "linux");
+					const filepath = p("a.yaml");
+
+					await expect(runContext({
+						env: {},
+						args: [filepath],
+					}).then(x => x.stdout)).resolves.toMatch("\x1b");
+				} finally {
+					platformSpy?.mockRestore();
+				}
+			});
+		});
 	});
 
 	test("run piped output nocolor", async () => {

@@ -119,6 +119,12 @@ describe("Module Test Case", () => {
 		expect(ctx.output).toMatch(/^usage: yamllint/);
 	});
 
+	test("run module help", async () => {
+		const ctx = await run("--help");
+		expect(ctx.returncode).toBe(0);
+		expect(ctx.output).toMatch(/^usage: yamllint/);
+	});
+
 	test("run module version", async () => {
 		const ctx = await run("--version");
 		expect(ctx.returncode).toBe(0);
