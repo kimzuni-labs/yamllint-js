@@ -9,8 +9,7 @@ on:
     paths-ignore:
       - ".release-please/**"
       - ".github/ISSUE_TEMPLATE/**"
-      - ".github/workflows/release-please.yml"
-      - ".github/workflows/publish.yml"
+      - ".github/workflows/deploy.yml"
   pull_request: *trigger
 
 jobs:
