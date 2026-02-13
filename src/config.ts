@@ -25,7 +25,7 @@ import ignore, { type Ignore } from "ignore";
 import { cosmiconfig, defaultLoaders, type Loader } from "cosmiconfig";
 
 import type { Prettify, BuiltInExtendName, RuleConf, Rule, RuleId, AllLevel, Level, Alias, ToCamelCaseKeys, MaybeCamelCaseKeys } from "./types";
-import { LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
+import { APP, LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
 import { splitlines, getHomedir, formatErrorMessage, toKebabCaseKeys } from "./utils";
 import * as yamllintRules from "./rules";
 import * as decoder from "./decoder";
@@ -392,7 +392,7 @@ export const loadConfigFile = (() => {
 	/**
 	 * Node.js loads JS/TS files as UTF-8 (with or without BOM), so autoDecode is not needed.
 	 */
-	const explorer = cosmiconfig("yamllint", {
+	const explorer = cosmiconfig(APP.NAME, {
 		cache: false,
 		stopDir: getHomedir(),
 		searchPlaces: CONFIG_SEARCH_PLACES,

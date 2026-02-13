@@ -190,11 +190,11 @@ export async function showProblems(
 export const parseArgs = (argv: string[]) => {
 	const isStdin = argv.includes("-");
 	return yargs(argv)
-		.scriptName("yamllint")
+		.scriptName(APP.NAME)
 		.version(APP.VERSION)
 		.command("$0 [FILE_OR_DIR...]", APP.DESCRIPTION)
 		.usage([
-			"usage: yamllint [-h] [-] [-c CONFIG_FILE | -d CONFIG_DATA] [--list-files] [-f {parsable,standard,colored,github,auto}] [-s] [--no-warnings] [-v] [FILE_OR_DIR ...]",
+			`usage: ${APP.NAME} [-h] [-] [-c CONFIG_FILE | -d CONFIG_DATA] [--list-files] [-f {parsable,standard,colored,github,auto}] [-s] [--no-warnings] [-v] [FILE_OR_DIR ...]`,
 			"",
 			APP.DESCRIPTION,
 		].join("\n"))
@@ -272,7 +272,7 @@ export const parseArgs = (argv: string[]) => {
 
 
 /**
- * Run yamllint and display problems, then set `process.exitCode`
+ * Run yamllint-js and display problems, then set `process.exitCode`
  *
  * @param argv `hideBin(process.argv)`
  * @param stdin `process.stdin`

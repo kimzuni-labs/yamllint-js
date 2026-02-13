@@ -989,7 +989,7 @@ describe("Command Line Config Test Case", () => {
 		});
 
 		describe("cjs", () => {
-			const confFiles = ["yamllint.config.cjs"];
+			const confFiles = ["yamllint.config.cjs", "yamllint-js.config.cjs"];
 			const conf = [
 				"module.exports = {",
 				"  extends: 'relaxed'",
@@ -1011,7 +1011,7 @@ describe("Command Line Config Test Case", () => {
 		});
 
 		describe("esm", () => {
-			const confFiles = ["yamllint.config.mjs", "yamllint.config.ts"];
+			const confFiles = ["yamllint.config.mjs", "yamllint.config.ts", "yamllint-js.config.mjs", "yamllint-js.config.ts"];
 			const conf = [
 				"export default {",
 				"  extends: 'relaxed'",
@@ -1182,7 +1182,7 @@ describe("Command Line Encoding Test Case", () => {
 
 				/*
 				 * Second, make sure that encoding autodetection works when the
-				 * file is piped to yamllint via stdin.
+				 * file is piped to yamllint-js via stdin.
 				 */
 				await validEncodingsStdinTestHelper(configPath, "sorted_correctly");
 				await validEncodingsStdinTestHelper(configPath, "sorted_incorrectly");

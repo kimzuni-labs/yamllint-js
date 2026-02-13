@@ -2,7 +2,7 @@
 
 This project is an unofficial Node.js port of
 [adrienverge/yamllint](https://github.com/adrienverge/yamllint),
-(the upstream project) originally created by
+yamllint created by
 [Adrien Vergé](https://github.com/adrienverge).
 
 The original project is licensed under GPL-3.0, which also applies here.
@@ -11,7 +11,7 @@ The original project is licensed under GPL-3.0, which also applies here.
 
 A linter for YAML files — an unofficial native Node.js port of Python yamllint.
 
-yamllint does not only check for syntax validity, but for weirdnesses like key
+yamllint-js does not only check for syntax validity, but for weirdnesses like key
 repetition and cosmetic problems such as lines length, trailing spaces,
 indentation, etc.
 
@@ -23,7 +23,7 @@ indentation, etc.
 
 ## Why
 
-The goal of this project is to enable the use of upstream in Node.js-only
+The goal of this project is to enable the use of yamllint in Node.js-only
 environments without requiring Python, by providing a Node.js–native port
 that aims for 100% compatibility with the original Python implementation.
 
@@ -52,7 +52,7 @@ to enhance the tool itself, not just its integration with Node.js:
 
 ![yamllint-js screenshot](./images/screenshot.png)
 
-![yamllint.config.mjs screenshot](./images/yamllint.config.mjs.png)
+![yamllint-js.config.mjs screenshot](./images/yamllint-js.config.mjs.png)
 
 
 
@@ -77,7 +77,7 @@ yarn global install yamllint-js
 bun add -g yamllint-js
 ```
 
-Upstream is also packaged for all major operating systems,
+yamllint is also packaged for all major operating systems,
 see installation examples (`dnf`, `apt-get`...)
 [in the official yamllint (Python) documentation](https://yamllint.readthedocs.io/en/stable/quickstart.html).
 
@@ -92,26 +92,32 @@ see installation examples (`dnf`, `apt-get`...)
 All `node_modules` directories are ignored.
 
 ```shell
+npx yamllint-js ...
+# alias
+npx yamllint ...
+```
+
+```shell
 # Lint one or more files
-npx yamllint my_file.yml my_other_file.yaml ...
+npx yamllint-js my_file.yml my_other_file.yaml ...
 ```
 
 ```shell
 # Recursively lint all YAML files in a directory
-npx yamllint .
+npx yamllint-js .
 ```
 
 ```shell
 # Use a pre-defined lint configuration
-npx yamllint -d relaxed file.yaml
+npx yamllint-js -d relaxed file.yaml
 
 # Use a custom lint configuration
-npx yamllint -c /path/to/myconfig file-to-lint.yaml
+npx yamllint-js -c /path/to/myconfig file-to-lint.yaml
 ```
 
 ```shell
 # Output a parsable format (for syntax checking in editors like Vim, emacs...)
-npx yamllint -f parsable file.yaml
+npx yamllint-js -f parsable file.yaml
 ```
 
 [Read more in the complete official yamllint (Python) documentation!](https://yamllint.readthedocs.io/)
@@ -120,13 +126,13 @@ npx yamllint -f parsable file.yaml
 
 ### Configuration
 
-In addition to the upstream configuration format,
+In addition to the yamllint configuration format,
 JavaScript and TypeScript configuration files are also supported:
 
-- [Upstream configuration format](https://github.com/adrienverge/yamllint/blob/73b9c0b54270076e2c76e2e6bfd428aa4203ed3a/yamllint/cli.py#L134):
-  `.yamllint`, `.yamllint.yaml`, `.yamllint.yml`, etc.
+- [yamllint configuration files and environment variables](https://yamllint.readthedocs.io/en/stable/configuration.html):
 - [Cosmiconfig default search places](https://github.com/cosmiconfig/cosmiconfig/blob/a5a842547c13392ebb89a485b9e56d9f37e3cbd3/src/defaults.ts#L12-L32):
-  `package.json` (`"yamllint"` field),  `.yamllintrc.json`,  `yamllint.config.ts`, etc.
+  + `package.json` (`"yamllint-js"` field),  `yamllint-js.config.ts`, etc. (Not support `rc` files)
+  + `package.json` (`"yamllint"` field),  `.yamllintrc.json`,  `yamllint.config.ts`, etc.
 
 Configuration can be easily defined with type hints, like:
 
@@ -154,7 +160,7 @@ export default defineConfig(config);
 
 ### Features
 
-Here is a yamllint configuration file example:
+Here is a yamllint-js configuration file example:
 
 ```yaml
 extends: default
@@ -173,6 +179,8 @@ Within a YAML file, special comments can be used to disable checks for a single 
 
 ```yaml
 This line is waaaaaaaaaay too long  # yamllint disable-line
+# and support yamllint-js
+This line is waaaaaaaaaay too long  # yamllint-js disable-line
 ```
 
 or for a whole block:

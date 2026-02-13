@@ -31,7 +31,7 @@ import pkg from "../package.json";
 
 
 
-const cli = pkg.bin.yamllint;
+const cli = pkg.bin["yamllint-js"];
 
 function run(...args: string[]) {
 	return new Promise<{
@@ -92,13 +92,13 @@ describe("Module Test Case", () => {
 	test("run module no args", async () => {
 		const ctx = await run();
 		expect(ctx.returncode).not.toBe(0);
-		expect(ctx.output).toMatch(/^usage: yamllint/);
+		expect(ctx.output).toMatch(/^usage: yamllint-js/);
 	});
 
 	test("run module help", async () => {
 		const ctx = await run("--help");
 		expect(ctx.returncode).toBe(0);
-		expect(ctx.output).toMatch(/^usage: yamllint/);
+		expect(ctx.output).toMatch(/^usage: yamllint-js/);
 	});
 
 	test("run module version", async () => {

@@ -637,4 +637,32 @@ describe("Yamllint Directives Test Case", () => {
 		], [
 		]);
 	});
+
+	test("support yamllint-js", async () => {
+		const check = await conf();
+
+		await check([
+			"---",
+			"key: value # comment",
+			"",
+		], [
+			[2, 12, "comments"],
+		]);
+
+		await check([
+			"---",
+			"# yamllint disable rule:comments",
+			"key: value # comment",
+			"",
+		], [
+		]);
+
+		await check([
+			"---",
+			"# yamllint-js disable rule:comments",
+			"key: value # comment",
+			"",
+		], [
+		]);
+	});
 });
