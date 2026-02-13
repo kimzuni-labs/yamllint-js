@@ -1,18 +1,5 @@
 # Changelog
 
-## [0.1.1](https://github.com/kimzuni-labs/yamllint-js/compare/v0.1.0...v0.1.1) (2026-02-13)
-
-
-### ✨ Features
-
-* add internal exports and update types/jsdoc ([89349f4](https://github.com/kimzuni-labs/yamllint-js/commit/89349f4fd6bc25240554ea39f66f4639fcd5b934))
-
-
-### 🐛 Bug Fixes
-
-* include broken symlinks in file list ([89349f4](https://github.com/kimzuni-labs/yamllint-js/commit/89349f4fd6bc25240554ea39f66f4639fcd5b934))
-* isBlockEnd getter on Token class ([#28](https://github.com/kimzuni-labs/yamllint-js/issues/28)) ([d712164](https://github.com/kimzuni-labs/yamllint-js/commit/d7121642be7a991ebc2e1805305bf2bf28fe0404))
-
 ## 0.1.0 (2025-12-21)
 
 
