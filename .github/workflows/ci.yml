@@ -3,12 +3,15 @@ name: CI
 
 on:
   workflow_dispatch:
-  push:
+  push: &trigger
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+    paths-ignore:
+      - ".release-please/**"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/workflows/release-please.yml"
+      - ".github/workflows/publish.yml"
+  pull_request: *trigger
 
 jobs:
   tests-and-lint:
