@@ -40,7 +40,7 @@ export const YAML_OPTIONS: yaml.ParseOptions & yaml.DocumentOptions = {
 
 export const CONFIG_SEARCH_PLACES = [
 	...getDefaultSearchPlaces(APP.NAME).filter(x => !x.includes(`${APP.NAME}rc`)),
-	...getDefaultSearchPlaces("yamllint"),
+	...getDefaultSearchPlaces("yamllint").filter(x => !x.includes("yamllintrc")),
 	".yamllint",
 	".yamllint.yaml",
 	".yamllint.yml",

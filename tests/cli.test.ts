@@ -966,28 +966,6 @@ describe("Command Line Config Test Case", () => {
 			}
 		});
 
-		describe("json", () => {
-			const confFiles = [".yamllintrc", ".yamllintrc.json"];
-			const conf = [
-				"{",
-				"  \"extends\": \"relaxed\"",
-				"}",
-			];
-
-			for (const confFile of confFiles) {
-				test(confFile, async () => {
-					await run({
-						workspace,
-						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
-					});
-					await run({
-						workspace: { ...workspace, [confFile]: conf },
-						stdout: "",
-					});
-				});
-			}
-		});
-
 		describe("cjs", () => {
 			const confFiles = ["yamllint.config.cjs", "yamllint-js.config.cjs"];
 			const conf = [
