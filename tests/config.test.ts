@@ -44,6 +44,19 @@ const newConf = (...strings: string[]) => YamlLintConfig.init({ content: strings
 
 
 describe("Simple Config Test Case", () => {
+	test("config init", async () => {
+		const yaml = "extends: default";
+		const json = { extends: "default" };
+		await tempWorkspace({
+			"foo.yaml": yaml,
+		}, async ({ resolve }) => {
+			await expect(YamlLintConfig.init({ content: yaml })).resolves.not.toThrow();
+			await expect(YamlLintConfig.init({ file: resolve("foo.yaml") })).resolves.not.toThrow();
+			await expect(YamlLintConfig.init({ data: json })).resolves.not.toThrow();
+			await expect(YamlLintConfig.init({ _data: json })).resolves.not.toThrow();
+		});
+	});
+
 	describe("parse config", () => {
 		const run = async (config: string[]) => {
 			const conf = await newConf(...config);
