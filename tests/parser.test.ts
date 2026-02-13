@@ -116,6 +116,13 @@ describe("Parser Test Case", () => {
 		expect(curr?.next?.next).toBeInstanceOf(Token);
 		expect(curr?.next?.next?.next).toBeUndefined();
 		t.next(); expect(curr?.next?.next?.next).toBeInstanceOf(Token);
+		expect(() => curr?.next?.next?.next?.isBlockEnd).toThrow();
+
+		// 23: item4, 26: val5
+		const isBlockEnd = [23, 26];
+		for (let idx = 0; idx < e.length; idx++) {
+			expect(e[idx].isBlockEnd).toBe(isBlockEnd.includes(idx));
+		}
 	});
 
 
