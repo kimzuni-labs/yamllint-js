@@ -131,10 +131,10 @@ function checkInlineMapping(line: LineCheckProps["line"]): boolean {
 	const content = line.content;
 	const loader = tokenGenerator(content);
 	let t1: ReturnType<typeof loader.next>["value"] | null = null;
-	while ((t1 = loader.next().value ?? null) !== null) {
+	while ((t1 = loader.next().value)) {
 		if (t1.data.type === "block-map") {
 			let t2: ReturnType<typeof loader.next>["value"] | null = null;
-			while ((t2 = loader.next().value ?? null) !== null) {
+			while ((t2 = loader.next().value)) {
 				if (t2.data.type === "map-value-ind") {
 					const token = loader.next().value;
 					if (!token?.resolve) continue;
