@@ -366,6 +366,15 @@ describe("Command Line Test Case", () => {
 		]);
 	});
 
+	test("run with help option", async () => {
+		const ctx = await runContext("--help");
+		checkContext(ctx, [
+			0,
+			/^usage/,
+			"",
+		]);
+	});
+
 	test("run with bad arguments", async () => {
 		let ctx: RunContextData;
 
