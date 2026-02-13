@@ -344,18 +344,16 @@ export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get
 			.partial()
 			.parse(conf);
 	} catch (e) {
-		if (e instanceof z.ZodError) {
-			const issue = e.issues[0];
+		assert(e instanceof z.ZodError);
+		const issue = e.issues[0];
 
-			if (issue.code === "unrecognized_keys") {
-				throw new YamlLintConfigError(`invalid config: unknown option "${issue.keys[0]}" for rule "${rule.ID}"`);
-			}
-
-			const optkey = issue.path[0];
-			const message = zodIssueDetect(issue).join("");
-			throw new YamlLintConfigError(`invalid config: option "${optkey.toString()}" of "${rule.ID}" ${message}`);
+		if (issue.code === "unrecognized_keys") {
+			throw new YamlLintConfigError(`invalid config: unknown option "${issue.keys[0]}" for rule "${rule.ID}"`);
 		}
-		throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
+
+		const optkey = issue.path[0];
+		const message = zodIssueDetect(issue).join("");
+		throw new YamlLintConfigError(`invalid config: option "${optkey.toString()}" of "${rule.ID}" ${message}`);
 	}
 
 	const keys = options?.keyof().options ?? [];
