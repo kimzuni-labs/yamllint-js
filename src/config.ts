@@ -412,6 +412,33 @@ export const loadConfigFile = (() => {
 
 
 
+/**
+ * Detect user global config file path.
+ *
+ * @example
+ *
+ * ```typescript
+ * await detectUserGlobalConfig(); // "/home/user/.config/yamllint/config"
+ * ```
+ */
+export async function detectUserGlobalConfig() {
+	let userGlobalConfig;
+	if (process.env.YAMLLINT_CONFIG_FILE !== undefined) {
+		userGlobalConfig = process.env.YAMLLINT_CONFIG_FILE;
+
+	// User-global config is supposed to be in ~/.config/yamllint/config
+	} else if (process.env.XDG_CONFIG_HOME !== undefined) {
+		userGlobalConfig = path.join(process.env.XDG_CONFIG_HOME, "yamllint", "config");
+	} else {
+		userGlobalConfig = path.join(getHomedir(), ".config", "yamllint", "config");
+	}
+
+	const isFile = await fs.stat(userGlobalConfig).then(x => x.isFile()).catch(() => false);
+	return isFile ? userGlobalConfig : undefined;
+}
+
+
+
 export async function getExtendedConfigFile(name: string) {
 	// Is it a standard conf shipped with yamllint...
 	if (!name.includes("/")) {
