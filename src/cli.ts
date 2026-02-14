@@ -27,8 +27,7 @@ import { hideBin } from "yargs/helpers";
 
 import type { AG } from "./types";
 import { APP, LEVELS, PROBLEM_LEVELS } from "./constants";
-import { getHomedir } from "./utils";
-import { YamlLintConfig, loadConfigFile } from "./config";
+import { YamlLintConfig, loadConfigFile, detectUserGlobalConfig } from "./config";
 import * as linter from "./linter";
 
 
@@ -287,17 +286,6 @@ export async function run(argv = hideBin(process.argv), stdin: Readable = proces
 		return;
 	}
 
-	let userGlobalConfig;
-	if (process.env.YAMLLINT_CONFIG_FILE !== undefined) {
-		userGlobalConfig = process.env.YAMLLINT_CONFIG_FILE;
-
-	// User-global config is supposed to be in ~/.config/yamllint/config
-	} else if (process.env.XDG_CONFIG_HOME !== undefined) {
-		userGlobalConfig = path.join(process.env.XDG_CONFIG_HOME, "yamllint", "config");
-	} else {
-		userGlobalConfig = path.join(getHomedir(), ".config", "yamllint", "config");
-	}
-
 	function getValue<
 		T extends "string" | "array" | "boolean" = "string",
 	>(
@@ -333,14 +321,11 @@ export async function run(argv = hideBin(process.argv), stdin: Readable = proces
 		} else if (configFile !== undefined) {
 			conf = await YamlLintConfig.init({ file: configFile });
 		} else {
+			let userGlobalConfig;
 			const load = await loadConfigFile();
 			if (load !== null) {
 				conf = await YamlLintConfig.init({ _data: load.config });
-			} else if (
-				await fs.stat(userGlobalConfig)
-					.then(x => x.isFile())
-					.catch(() => false)
-			) {
+			} else if ((userGlobalConfig = await detectUserGlobalConfig())) {
 				conf = await YamlLintConfig.init({ file: userGlobalConfig });
 			} else {
 				conf = await YamlLintConfig.init({ content: "extends: default" });
