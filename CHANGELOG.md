@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.0...v0.2.1) (2026-02-14)
+
+
+### ✨ Features
+
+* export detectUserGlobalConfig function ([#33](https://github.com/kimzuni-labs/yamllint-js/issues/33)) ([7dd1643](https://github.com/kimzuni-labs/yamllint-js/commit/7dd1643a09cb5c131d13decca0945beebd219b9d))
+* export loadYamlLintConfig function ([#35](https://github.com/kimzuni-labs/yamllint-js/issues/35)) ([e0b0738](https://github.com/kimzuni-labs/yamllint-js/commit/e0b073858adb2a2b43af297584cd709628bbd7f9))
+
 ## [0.2.0](https://github.com/kimzuni-labs/yamllint-js/compare/v0.1.0...v0.2.0) (2026-02-14)
 
 
