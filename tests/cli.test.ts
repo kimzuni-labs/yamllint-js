@@ -966,30 +966,8 @@ describe("Command Line Config Test Case", () => {
 			}
 		});
 
-		describe("json", () => {
-			const confFiles = [".yamllintrc", ".yamllintrc.json"];
-			const conf = [
-				"{",
-				"  \"extends\": \"relaxed\"",
-				"}",
-			];
-
-			for (const confFile of confFiles) {
-				test(confFile, async () => {
-					await run({
-						workspace,
-						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
-					});
-					await run({
-						workspace: { ...workspace, [confFile]: conf },
-						stdout: "",
-					});
-				});
-			}
-		});
-
 		describe("cjs", () => {
-			const confFiles = ["yamllint.config.cjs"];
+			const confFiles = ["yamllint.config.cjs", "yamllint-js.config.cjs"];
 			const conf = [
 				"module.exports = {",
 				"  extends: 'relaxed'",
@@ -1011,7 +989,7 @@ describe("Command Line Config Test Case", () => {
 		});
 
 		describe("esm", () => {
-			const confFiles = ["yamllint.config.mjs", "yamllint.config.ts"];
+			const confFiles = ["yamllint.config.mjs", "yamllint.config.ts", "yamllint-js.config.mjs", "yamllint-js.config.ts"];
 			const conf = [
 				"export default {",
 				"  extends: 'relaxed'",
@@ -1182,7 +1160,7 @@ describe("Command Line Encoding Test Case", () => {
 
 				/*
 				 * Second, make sure that encoding autodetection works when the
-				 * file is piped to yamllint via stdin.
+				 * file is piped to yamllint-js via stdin.
 				 */
 				await validEncodingsStdinTestHelper(configPath, "sorted_correctly");
 				await validEncodingsStdinTestHelper(configPath, "sorted_incorrectly");

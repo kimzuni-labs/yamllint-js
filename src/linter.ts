@@ -23,7 +23,7 @@ import yaml from "yaml";
 
 import type { Level, RuleId } from "./types";
 import type { YamlLintConfig } from "./config";
-import { YAML_OPTIONS } from "./constants";
+import { APP, YAML_OPTIONS } from "./constants";
 import * as decoder from "./decoder";
 import * as parser from "./parser";
 
@@ -38,12 +38,12 @@ import * as parser from "./parser";
  */
 
 const RULE_PREFIX = "rule:";
-const DISABLE_PREFIX = "# yamllint disable";
-const ENABLE_PREFIX = "# yamllint enable";
-const DISABLE_LINE_PREFIX = "# yamllint disable-line";
+const DISABLE_PREFIX = "# yamllint(-js)? disable";
+const ENABLE_PREFIX = "# yamllint(-js)? enable";
+const DISABLE_LINE_PREFIX = "# yamllint(-js)? disable-line";
 const PATTERN_SUFFIX = `( ${RULE_PREFIX}\\S+)*\\s*$`;
 
-const DISABLE_FILE_PATTERN = /^#\s*yamllint disable-file\s*$/;
+const DISABLE_FILE_PATTERN = /^#\s*yamllint(-js)? disable-file\s*$/;
 const DISABLE_RULE_PATTERN = new RegExp(`^${DISABLE_PREFIX}${PATTERN_SUFFIX}`);
 const ENABLE_RULE_PATTERN = new RegExp(`^${ENABLE_PREFIX}${PATTERN_SUFFIX}`);
 const DISABLE_LINE_RULE_PATTERN = new RegExp(`^${DISABLE_LINE_PREFIX}${PATTERN_SUFFIX}`);
@@ -51,7 +51,7 @@ const DISABLE_LINE_RULE_PATTERN = new RegExp(`^${DISABLE_LINE_PREFIX}${PATTERN_S
 
 
 /**
- * Represents a linting problem found by yamllint.
+ * Represents a linting problem found by yamllint-js.
  */
 export class LintProblem {
 	/**
@@ -121,12 +121,11 @@ export function* getCosmeticProblems(buffer: string, conf: YamlLintConfig, filep
 	}
 
 	const parseRules = (prefix: string, comment: string) => comment
-		.slice(prefix.length)
+		.slice(prefix.length - (comment.includes(APP.NAME) ? 3 : 6))
 		.trimEnd()
 		.split(" ")
 		.map(x => x.trim().slice(RULE_PREFIX.length))
 		.slice(1);
-
 
 	class DisableDirective {
 		rules = new Set<string>();
@@ -176,7 +175,7 @@ export function* getCosmeticProblems(buffer: string, conf: YamlLintConfig, filep
 
 	/*
 	 * Use a cache to store problems and flush it only when an end of line is
-	 * found. This allows the use of yamllint directive to disable some rules on
+	 * found. This allows the use of yamllint(-js) directive to disable some rules on
 	 * some lines.
 	 */
 	let cache: LintProblem[] = [];
@@ -316,7 +315,7 @@ function* _run(buffer: string | Buffer, conf: YamlLintConfig, filepath?: string)
  * Returns a generator of LintProblem objects.
  *
  * @param input buffer, string or stream to read from
- * @param conf yamllint configuration object
+ * @param conf yamllint-js configuration object
  * @param filepath Path of the file where the input was read from
  */
 export async function* run(input: string | Buffer | Readable, conf: YamlLintConfig, filepath?: string) {

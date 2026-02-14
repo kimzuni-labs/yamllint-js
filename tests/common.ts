@@ -118,7 +118,7 @@ export class Blob2 {
 
 export type BuildTempWorkspaceReturnType = Awaited<ReturnType<typeof buildTempWorkspace>>;
 export async function buildTempWorkspace(files: Workspace) {
-	const tempdir = await fs.mkdtemp(path.join(os.tmpdir(), "yamllint-tests-"));
+	const tempdir = await fs.mkdtemp(path.join(os.tmpdir(), "yamllint-js-tests-"));
 
 	/**
 	 * file generator with random string

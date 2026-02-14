@@ -23,11 +23,11 @@ import pkg from "../package.json";
 
 
 export const APP = {
-	NAME: "yamllint",
+	NAME: pkg.name,
 	VERSION: pkg.version,
 	DESCRIPTION: [
 		pkg.description,
-		"yamllint does not only check for syntax validity,",
+		`${pkg.name} does not only check for syntax validity,`,
 		"but for weirdnesses like key repetition and cosmetic problems",
 		"such as lines length, trailing spaces, indentation, etc.",
 	].join(" "),
@@ -39,7 +39,8 @@ export const YAML_OPTIONS: yaml.ParseOptions & yaml.DocumentOptions = {
 };
 
 export const CONFIG_SEARCH_PLACES = [
-	...getDefaultSearchPlaces("yamllint"),
+	...getDefaultSearchPlaces(APP.NAME).filter(x => !x.includes(`${APP.NAME}rc`)),
+	...getDefaultSearchPlaces("yamllint").filter(x => !x.includes("yamllintrc")),
 	".yamllint",
 	".yamllint.yaml",
 	".yamllint.yml",

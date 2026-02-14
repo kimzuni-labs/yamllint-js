@@ -55,7 +55,7 @@ npm run lint:yaml
 Run a build first:
 
 ```shell
-npm run build
+npm run build -- -no-dts
 ```
 
 Make sure your changes work as expected.
