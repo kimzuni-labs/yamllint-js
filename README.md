@@ -50,7 +50,7 @@ to enhance the tool itself, not just its integration with Node.js:
 
 ### Screenshot
 
-![yamllint-js screenshot](./images/screenshot.png)
+![yamllint-js screenshot](./images/npx-yamllint-js.png)
 
 ![yamllint-js.config.mjs screenshot](./images/yamllint-js.config.mjs.png)
 
