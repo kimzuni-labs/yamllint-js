@@ -437,6 +437,24 @@ export async function detectUserGlobalConfig() {
 	return isFile ? userGlobalConfig : undefined;
 }
 
+/**
+ * Load and return a fully resolved YamlLint configuration instance.
+ */
+export async function loadYamlLintConfig() {
+	let userGlobalConfig;
+	let load;
+
+	let conf: YamlLintConfig;
+	if ((load = await loadConfigFile())) {
+		conf = await YamlLintConfig.init({ _data: load.config });
+	} else if ((userGlobalConfig = await detectUserGlobalConfig())) {
+		conf = await YamlLintConfig.init({ file: userGlobalConfig });
+	} else {
+		conf = await YamlLintConfig.init({ content: "extends: default" });
+	}
+	return conf;
+}
+
 
 
 export async function getExtendedConfigFile(name: string) {

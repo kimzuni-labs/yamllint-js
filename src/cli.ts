@@ -27,7 +27,7 @@ import { hideBin } from "yargs/helpers";
 
 import type { AG } from "./types";
 import { APP, LEVELS, PROBLEM_LEVELS } from "./constants";
-import { YamlLintConfig, loadConfigFile, detectUserGlobalConfig } from "./config";
+import { YamlLintConfig, loadYamlLintConfig } from "./config";
 import * as linter from "./linter";
 
 
@@ -321,15 +321,7 @@ export async function run(argv = hideBin(process.argv), stdin: Readable = proces
 		} else if (configFile !== undefined) {
 			conf = await YamlLintConfig.init({ file: configFile });
 		} else {
-			let userGlobalConfig;
-			const load = await loadConfigFile();
-			if (load !== null) {
-				conf = await YamlLintConfig.init({ _data: load.config });
-			} else if ((userGlobalConfig = await detectUserGlobalConfig())) {
-				conf = await YamlLintConfig.init({ file: userGlobalConfig });
-			} else {
-				conf = await YamlLintConfig.init({ content: "extends: default" });
-			}
+			conf = await loadYamlLintConfig();
 		}
 	} catch (e) {
 		console.error(String(e));
