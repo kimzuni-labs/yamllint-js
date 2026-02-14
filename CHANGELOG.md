@@ -5,7 +5,13 @@
 
 ### ⚠ BREAKING CHANGES
 
-* 
+* rc filenames are no longer supported.
+  Users must rename their existing config files:
+  ([#32](https://github.com/kimzuni-labs/yamllint-js/issues/32))
+  - .yamllint
+  - .yamllint.yml / .yaml
+  - .yamllint.config.js (or .cjs/.mjs/.ts)
+  - .yamllint-js.config.js (or .cjs/.mjs/.ts)
 
 ### ✨ Features
 
