@@ -38,6 +38,7 @@ export {
 	YamlLintConfigError,
 	loadConfigFile,
 	detectUserGlobalConfig,
+	loadYamlLintConfig,
 	validateLevel,
 } from "./config";
 
