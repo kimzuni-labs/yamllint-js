@@ -130,10 +130,10 @@ In addition to the yamllint configuration format,
 JavaScript and TypeScript configuration files are also supported:
 
 - [yamllint configuration files and environment variables](https://yamllint.readthedocs.io/en/stable/configuration.html):
-- [Cosmiconfig default search places](https://github.com/cosmiconfig/cosmiconfig/blob/a5a842547c13392ebb89a485b9e56d9f37e3cbd3/src/defaults.ts#L12-L32)
-  (Not support `rc` files):
-  + `package.json` (`"yamllint-js"` field),  `yamllint-js.config.ts`, etc.
-  + `package.json` (`"yamllint"` field),  `yamllint.config.ts`, etc.
+- `package.json` or js/ts config files
+  + `package.json` (`"yamllint-js"`, `"yamllint"` fields)
+  + `yamllint-js.config.js`, `.ts`, `.cjs`, `.mjs`
+  + `yamllint.config.js`, `.ts`, `.cjs`, `.mjs`
 
 Configuration can be easily defined with type hints, like:
 

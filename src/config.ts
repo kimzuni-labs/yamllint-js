@@ -22,11 +22,11 @@ import path from "node:path";
 import yaml from "yaml";
 import z from "zod";
 import ignore, { type Ignore } from "ignore";
-import { cosmiconfig, defaultLoaders, type Loader } from "cosmiconfig";
+import { createJiti } from "jiti";
 
 import type { Prettify, BuiltInExtendName, RuleConf, Rule, RuleId, AllLevel, Level, Alias, ToCamelCaseKeys, MaybeCamelCaseKeys } from "./types";
-import { APP, LEVELS, ALIASES, CONFIG_SEARCH_PLACES, YAML_OPTIONS } from "./constants";
-import { splitlines, getHomedir, formatErrorMessage, toKebabCaseKeys } from "./utils";
+import { COMMAND_NAMES, LEVELS, ALIASES, PY_YAMLLINT_CONFIG_FILES, YAML_OPTIONS } from "./constants";
+import { splitlines, getHomedir, formatErrorMessage, toKebabCaseKeys, getNodeSearchPlaces } from "./utils";
 import * as yamllintRules from "./rules";
 import * as decoder from "./decoder";
 
@@ -219,7 +219,7 @@ export class YamlLintConfig {
 				if (props.content !== undefined) {
 					this.#data = yaml.parse(props.content, YAML_OPTIONS) as unknown;
 				} else {
-					this.#data = await loadConfigFile(props.file).then(x => x?.config as unknown);
+					this.#data = await loadConfigFile(props.file);
 				}
 			} catch (e) {
 				throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
@@ -373,6 +373,11 @@ export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get
 
 
 
+interface LoadConfigFileOptions {
+	startDir?: string;
+	stopDir?: string;
+}
+
 /**
  * Load YAML lint configuration from a file.
  *
@@ -384,29 +389,80 @@ export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get
  * ```
  */
 export const loadConfigFile = (() => {
-	const loadYAML: Loader = async function loadYAML(filepath) {
-		const content = decoder.autoDecode(await fs.readFile(filepath));
-		return yaml.parse(content, YAML_OPTIONS) as unknown;
+	const jsReg = /\.[cm]?js$/;
+	const homeDir = getHomedir();
+	const filenames = [
+		"package.json",
+		...getNodeSearchPlaces(COMMAND_NAMES),
+		...PY_YAMLLINT_CONFIG_FILES,
+	];
+
+	const loadFile = async (filepath: string, throwOnFailure = false) => {
+		try {
+			filepath = path.resolve(filepath);
+			const filename = path.basename(filepath);
+			if (jsReg.test(filepath) || filepath.endsWith(".ts")) {
+				const jiti = createJiti(import.meta.url);
+				const size = await fs.stat(filepath).then(x => x.size).catch(() => 0);
+				if (size < 1) throw new Error();
+
+				const mod = await jiti.import(filepath, { default: true });
+
+				// @ts-expect-error: ts(18046)
+				const value = (mod.default ?? mod) as unknown;
+				if (typeof value === "object" && value !== null) {
+					return value;
+				}
+			} else if (filename === "package.json") {
+				const content = decoder.autoDecode(await fs.readFile(filepath));
+				const pkg = JSON.parse(content) as unknown;
+				if (typeof pkg !== "object" || pkg === null) return;
+
+				for (const name of COMMAND_NAMES) {
+					// @ts-expect-error: ts(7053)
+					const value = pkg[name] as unknown;
+					if (value) return value;
+				}
+			} else {
+				const content = decoder.autoDecode(await fs.readFile(filepath));
+				return yaml.parse(content, YAML_OPTIONS) as unknown;
+			}
+		} catch {
+			if (throwOnFailure) {
+				throw new YamlLintConfigError(`failed to load config file "${filepath}"`);
+			}
+			return;
+		}
 	};
 
-	/**
-	 * Node.js loads JS/TS files as UTF-8 (with or without BOM), so autoDecode is not needed.
-	 */
-	const explorer = cosmiconfig(APP.NAME, {
-		cache: false,
-		stopDir: getHomedir(),
-		searchPlaces: CONFIG_SEARCH_PLACES,
-		loaders: {
-			...defaultLoaders,
-			".json": loadYAML,
-			".yaml": loadYAML,
-			".yml": loadYAML,
-			noExt: loadYAML,
-		},
-	});
+	return async function loadConfigFile(filepath?: string | LoadConfigFileOptions) {
+		if (typeof filepath === "string") {
+			return loadFile(filepath, true);
+		}
 
-	return function loadConfigFile(filepath?: string) {
-		return filepath === undefined ? explorer.search() : explorer.load(filepath);
+		const {
+			startDir = process.cwd(),
+			stopDir,
+		} = filepath ?? {};
+		let currDir = path.resolve(startDir);
+
+		do {
+			for (const filename of filenames) {
+				const curr = path.join(currDir, filename);
+				const isFile = await fs.stat(curr)
+					.then(x => x.isFile() || x.isSymbolicLink())
+					.catch(() => false);
+				if (isFile) {
+					const content = await loadFile(curr);
+					if (content) return content;
+				}
+			}
+			currDir = path.dirname(currDir);
+		} while (
+			currDir !== stopDir
+			&& currDir !== homeDir
+			&& currDir !== path.dirname(currDir)
+		);
 	};
 })();
 
@@ -446,7 +502,7 @@ export async function loadYamlLintConfig() {
 
 	let conf: YamlLintConfig;
 	if ((load = await loadConfigFile())) {
-		conf = await YamlLintConfig.init({ _data: load.config });
+		conf = await YamlLintConfig.init({ _data: load });
 	} else if ((userGlobalConfig = await detectUserGlobalConfig())) {
 		conf = await YamlLintConfig.init({ file: userGlobalConfig });
 	} else {

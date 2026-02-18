@@ -24,7 +24,7 @@ import path from "node:path";
 import os from "node:os";
 import glob from "fast-glob";
 
-import { APP } from "../src/constants";
+import { COMMAND_NAMES, APP } from "../src/constants";
 import * as cli from "../src/cli";
 import { YamlLintConfig } from "../src/config";
 import { splitlines } from "../src/utils";
@@ -42,13 +42,14 @@ import {
 
 
 
+type CheckContextData = [
+	returnCode: RegExp | RunContextData["returncode"],
+	stdout: RegExp | RunContextData["stdout"],
+	stderr: RegExp | RunContextData["stderr"],
+];
 const checkContext = (
 	ctx: RunContextData,
-	data: [
-		RegExp | RunContextData["returncode"],
-		RegExp | RunContextData["stdout"],
-		RegExp | RunContextData["stderr"],
-	],
+	data: CheckContextData,
 	{
 		trim = true,
 	}: {
@@ -924,87 +925,166 @@ describe("Command Line Config Test Case", () => {
 	const confFiles = [".yamllint", ".yamllint.yml", ".yamllint.yaml"];
 	const run = async ({
 		workspace,
-		stdout,
+		returnCode = 0,
+		stdout = "",
+		stderr = "",
+		configFile,
 		workdir,
 	}: {
 		workspace: Record<string, string | string[]>;
-		stdout: string;
+		returnCode?: CheckContextData[0];
+		stdout?: CheckContextData[1];
+		stderr?: CheckContextData[2];
+		configFile?: string;
 		workdir?: string;
 	}) => {
 		await tempWorkspace(workspace, async () => {
 			if (workdir) process.chdir(workdir);
-			const ctx = await runContext("-f", "parsable", ".");
+			const args = ["-f", "parsable", "."];
+			if (configFile) args.push("-c", configFile);
+			const ctx = await runContext(...args);
 			checkContext(ctx, [
-				0,
+				returnCode,
 				stdout,
-				"",
+				stderr,
 			]);
 		});
 	};
 
 	describe("config file", () => {
 		const workspace = { "a.yml": "hello: world\n" };
-
-		describe("yaml", () => {
-			const conf = [
+		const confs = {
+			yaml: [
 				"---",
 				"extends: relaxed",
 				"",
-			];
-
-			for (const confFile of confFiles) {
-				test(confFile, async () => {
-					await run({
-						workspace,
-						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
-					});
-					await run({
-						workspace: { ...workspace, [confFile]: conf },
-						stdout: "",
-					});
-				});
-			}
-		});
-
-		describe("cjs", () => {
-			const confFiles = ["yamllint.config.cjs", "yamllint-js.config.cjs"];
-			const conf = [
+			],
+			package: COMMAND_NAMES.map(x => [
+				x,
+				[
+					"{",
+					`  "${x}": {`,
+					"    \"extends\": \"relaxed\"",
+					"  }",
+					"}",
+				],
+			] satisfies [command: string, conf: string[]]),
+			cjs: [
 				"module.exports = {",
 				"  extends: 'relaxed'",
 				"};",
-			];
+			],
+			esm: [
+				"export default {",
+				"  extends: 'relaxed'",
+				"};",
+			],
+			ts: [
+				"export default {",
+				"  extends: 'relaxed'",
+				"};",
+			],
+		};
 
+		test("no config file", async () => {
+			await run({
+				workspace,
+				stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+			});
+		});
+
+		test("not support format", async () => {
+			await run({
+				workspace: { ...workspace, "yamllint-js.config.mjs": "" },
+				stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+			});
+
+			await run({
+				configFile: "file.js",
+				workspace: { ...workspace, "file.js": "" },
+				returnCode: -1,
+				stderr: /^Error:/,
+			});
+		});
+
+		describe("yaml", () => {
 			for (const confFile of confFiles) {
 				test(confFile, async () => {
 					await run({
-						workspace,
-						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
-					});
-					await run({
-						workspace: { ...workspace, [confFile]: conf },
-						stdout: "",
+						workspace: { ...workspace, [confFile]: confs.yaml },
 					});
 				});
 			}
 		});
 
-		describe("esm", () => {
-			const confFiles = ["yamllint.config.mjs", "yamllint.config.ts", "yamllint-js.config.mjs", "yamllint-js.config.ts"];
-			const conf = [
-				"export default {",
-				"  extends: 'relaxed'",
-				"};",
-			];
+		describe("package.json", () => {
+			const confFile = "package.json";
+
+			for (const [key, conf] of confs.package) {
+				test(key, async () => {
+					await run({
+						workspace: { ...workspace, [confFile]: conf },
+					});
+				});
+			}
+		});
+
+		describe(".js", () => {
+			const confFiles = COMMAND_NAMES.map(x => `${x}.config.js`);
+
+			for (const confFile of confFiles) {
+				for (const conf of [confs.cjs, confs.esm]) {
+					test(confFile, async () => {
+						await run({
+							workspace: { ...workspace, [confFile]: conf },
+						});
+					});
+				}
+			}
+		});
+
+		describe(".cjs", () => {
+			const confFiles = COMMAND_NAMES.map(x => `${x}.config.cjs`);
 
 			for (const confFile of confFiles) {
 				test(confFile, async () => {
 					await run({
-						workspace,
-						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+						workspace: { ...workspace, [confFile]: confs.cjs },
 					});
+				});
+			}
+		});
+
+		describe(".esm", () => {
+			const confFiles = COMMAND_NAMES.map(x => `${x}.config.mjs`);
+
+			for (const confFile of confFiles) {
+				test(confFile, async () => {
 					await run({
-						workspace: { ...workspace, [confFile]: conf },
-						stdout: "",
+						workspace: { ...workspace, [confFile]: confs.esm },
+					});
+				});
+			}
+		});
+
+		describe(".ts", () => {
+			const confFiles = COMMAND_NAMES.map(x => `${x}.config.ts`);
+
+			for (const confFile of confFiles) {
+				test(confFile, async () => {
+					await run({
+						workspace: { ...workspace, [confFile]: confs.esm },
+					});
+				});
+			}
+		});
+
+		describe("empty file", () => {
+			for (const confFile of [...confFiles, "yamllint-js.config.js", "yamllint-js.config.ts"]) {
+				test(confFile, async () => {
+					await run({
+						workspace: { ...workspace, [confFile]: "" },
+						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
 					});
 				});
 			}
