@@ -16,11 +16,15 @@
  */
 
 import type yaml from "yaml";
-import { getDefaultSearchPlaces } from "cosmiconfig";
 
 import pkg from "../package.json";
 
 
+
+/**
+ * Command names with aliases
+ */
+export const COMMAND_NAMES = Object.keys(pkg.bin);
 
 export const APP = {
 	NAME: pkg.name,
@@ -33,18 +37,16 @@ export const APP = {
 	].join(" "),
 };
 
-export const YAML_OPTIONS: yaml.ParseOptions & yaml.DocumentOptions = {
-	version: "1.1",
-	uniqueKeys: false,
-};
-
-export const CONFIG_SEARCH_PLACES = [
-	...getDefaultSearchPlaces(APP.NAME).filter(x => !x.includes(`${APP.NAME}rc`)),
-	...getDefaultSearchPlaces("yamllint").filter(x => !x.includes("yamllintrc")),
+export const PY_YAMLLINT_CONFIG_FILES = [
 	".yamllint",
 	".yamllint.yaml",
 	".yamllint.yml",
 ];
+
+export const YAML_OPTIONS: yaml.ParseOptions & yaml.DocumentOptions = {
+	version: "1.1",
+	uniqueKeys: false,
+};
 
 
 
