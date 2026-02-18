@@ -31,6 +31,8 @@ Clone the repository and install dependencies.
 
     ```shell
     npm install
+    # or (faster)
+    bun ci
     ```
 
 ## 🎨 Linting
