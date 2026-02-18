@@ -6,10 +6,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        Thanks for taking the time to fill out this feature request!
 
         Make sure you are running the latest version.
-        The bug you are experiencing may already have been fixed.
+        The feature you are requesting may already have been implemented.
 
         Please try to include as much information as possible.
   - type: textarea
