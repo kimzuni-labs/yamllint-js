@@ -492,12 +492,12 @@ export async function detectUserGlobalConfig() {
 /**
  * Load and return a fully resolved YamlLint configuration instance.
  */
-export async function loadYamlLintConfig() {
+export async function loadYamlLintConfig(options?: LoadConfigFileOptions) {
 	let userGlobalConfig;
 	let load;
 
 	let conf: YamlLintConfig;
-	if ((load = await loadConfigFile())) {
+	if ((load = await loadConfigFile(options))) {
 		conf = await YamlLintConfig.init({ _data: load });
 	} else if ((userGlobalConfig = await detectUserGlobalConfig())) {
 		conf = await YamlLintConfig.init({ file: userGlobalConfig });
