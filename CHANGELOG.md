@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.3](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.2...v0.2.3) (2026-02-19)
+
+
+### ✨ Features
+
+* support options on loadYamlLintConfig ([9f67bea](https://github.com/kimzuni-labs/yamllint-js/commit/9f67beab94698b64c1b09c332a246d4099ff0cbc))
+
+
+### 🐛 Bug Fixes
+
+* stopDir option on loadConfigFile ([9f67bea](https://github.com/kimzuni-labs/yamllint-js/commit/9f67beab94698b64c1b09c332a246d4099ff0cbc))
+* throw on failure in loadConfigFile ([9f67bea](https://github.com/kimzuni-labs/yamllint-js/commit/9f67beab94698b64c1b09c332a246d4099ff0cbc))
+
 ## [0.2.2](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.1...v0.2.2) (2026-02-19)
 
 
