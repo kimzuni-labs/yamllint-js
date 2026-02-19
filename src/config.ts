@@ -390,7 +390,6 @@ interface LoadConfigFileOptions {
  */
 export const loadConfigFile = (() => {
 	const jsReg = /\.[cm]?js$/;
-	const homeDir = getHomedir();
 	const filenames = [
 		"package.json",
 		...getNodeSearchPlaces(COMMAND_NAMES),
@@ -440,10 +439,8 @@ export const loadConfigFile = (() => {
 			return loadFile(filepath, true);
 		}
 
-		const {
-			startDir = process.cwd(),
-			stopDir,
-		} = filepath ?? {};
+		const startDir = filepath?.startDir ?? process.cwd();
+		const stopDir = filepath?.stopDir === undefined ? getHomedir() : path.resolve(filepath.stopDir);
 		let currDir = path.resolve(startDir);
 
 		do {
@@ -460,7 +457,6 @@ export const loadConfigFile = (() => {
 			currDir = path.dirname(currDir);
 		} while (
 			currDir !== stopDir
-			&& currDir !== homeDir
 			&& currDir !== path.dirname(currDir)
 		);
 	};
