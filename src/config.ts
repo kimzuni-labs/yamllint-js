@@ -404,14 +404,14 @@ export const loadConfigFile = (() => {
 			if (jsReg.test(filepath) || filepath.endsWith(".ts")) {
 				const jiti = createJiti(import.meta.url);
 				const size = await fs.stat(filepath).then(x => x.size).catch(() => 0);
-				if (size < 1) throw new Error();
+				if (size > 0) {
+					const mod = await jiti.import(filepath, { default: true });
 
-				const mod = await jiti.import(filepath, { default: true });
-
-				// @ts-expect-error: ts(18046)
-				const value = (mod.default ?? mod) as unknown;
-				if (typeof value === "object" && value !== null) {
-					return value;
+					// @ts-expect-error: ts(18046)
+					const value = (mod.default ?? mod) as unknown;
+					if (typeof value === "object" && value !== null) {
+						return value;
+					}
 				}
 			} else if (filename === "package.json") {
 				const content = decoder.autoDecode(await fs.readFile(filepath));
@@ -427,11 +427,11 @@ export const loadConfigFile = (() => {
 				const content = decoder.autoDecode(await fs.readFile(filepath));
 				return yaml.parse(content, YAML_OPTIONS) as unknown;
 			}
+			throw new Error();
 		} catch {
 			if (throwOnFailure) {
 				throw new YamlLintConfigError(`failed to load config file "${filepath}"`);
 			}
-			return;
 		}
 	};
 
