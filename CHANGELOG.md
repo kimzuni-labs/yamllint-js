@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.1...v0.2.2) (2026-02-19)
+
+
+### 🐛 Bug Fixes
+
+* detection yamllint field in package.json ([#37](https://github.com/kimzuni-labs/yamllint-js/issues/37)) ([5fe02d7](https://github.com/kimzuni-labs/yamllint-js/commit/5fe02d73c299bba7a53edb90a56aa16fad4fc845))
+
 ## [0.2.1](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.0...v0.2.1) (2026-02-14)
 
 
