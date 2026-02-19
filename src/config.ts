@@ -374,7 +374,16 @@ export async function validateRuleConf(rule: ReturnType<typeof yamllintRules.get
 
 
 interface LoadConfigFileOptions {
+	/**
+	 * @default process.cwd()
+	 */
 	startDir?: string;
+
+	/**
+	 * @default getHomedir()
+	 *
+	 * @see {@link getHomedir}
+	 */
 	stopDir?: string;
 }
 
@@ -386,6 +395,7 @@ interface LoadConfigFileOptions {
  * ```typescript
  * const autoDetected = await loadConfigFile();
  * const specified = await loadConfigFile("path/to/yamllint.yaml");
+ * const withOptions = await loadConfigFile({ startDir, stopDir });
  * ```
  */
 export const loadConfigFile = (() => {
@@ -491,6 +501,10 @@ export async function detectUserGlobalConfig() {
 
 /**
  * Load and return a fully resolved YamlLint configuration instance.
+ *
+ * - First, try to load config file from the current directory to user home directory.
+ * - If not found, try to load from the user global config file.
+ * - If not found, try to load from the default config.
  */
 export async function loadYamlLintConfig(options?: LoadConfigFileOptions) {
 	let userGlobalConfig;
