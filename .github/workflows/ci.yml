@@ -22,7 +22,6 @@ jobs:
       contents: read
     uses: kimzuni-labs/workflows/.github/workflows/bun-ci.yml@main
     with:
-      build: true
       test: true
       test-script: "test:coverage"
       codecov-upload: true

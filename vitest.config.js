@@ -1,6 +1,9 @@
+import { spawnSync } from "node:child_process";
 import { defineConfig } from "vitest/config";
 
 
+
+spawnSync("npm", ["run", "build:nodts"]);
 
 export default defineConfig({
 	test: {

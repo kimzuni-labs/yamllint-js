@@ -54,12 +54,6 @@ npm run lint:yaml
 
 ## 🧪 Testing
 
-Run a build first:
-
-```shell
-npm run build -- -no-dts
-```
-
 Make sure your changes work as expected.
 
 ```shell
