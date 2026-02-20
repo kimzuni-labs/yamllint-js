@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.3...v0.2.4) (2026-02-20)
+
+
+### 🏗️ Build System
+
+* dual cjs/esm exports ([#42](https://github.com/kimzuni-labs/yamllint-js/issues/42)) ([4e67471](https://github.com/kimzuni-labs/yamllint-js/commit/4e674716d2a4affe563318db053ab78e18a44491))
+
 ## [0.2.3](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.2...v0.2.3) (2026-02-19)
 
 
