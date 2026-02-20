@@ -21,7 +21,7 @@
 		{ "type": "chore", "scope": "deps", "section": "📦 Dependencies", "hidden": false },
 		{ "type": "refactor", "section": "♻️ Code Refactoring", "hidden": true },
 		{ "type": "test", "section": "✅ Tests", "hidden": true },
-		{ "type": "build", "section": "🏗️ Build System", "hidden": true },
+		{ "type": "build", "section": "🏗️ Build System", "hidden": false },
 		{ "type": "ci", "section": "👷 Continuous Integration", "hidden": true },
 		{ "scope": "typo", "section": "✏️ Fix typos", "hidden": true }
 	]
