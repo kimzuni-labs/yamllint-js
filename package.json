@@ -25,8 +25,9 @@
     "lint:markdown": "markdownlint-cli2",
     "lint:yaml": "node dist/main.mjs -c yamllint.self.config.js .",
     "prelint:yaml": "npm run build:nodts",
-    "build": "tsdown",
-    "build:nodts": "tsdown --no-dts"
+    "build": "npm run build:nodts && npm run build:dts",
+    "build:dts": "tsc -p tsconfig.dts.json",
+    "build:nodts": "tsdown"
   },
   "files": [
     "dist",
@@ -46,11 +47,19 @@
     "yamllint-js": "dist/main.mjs",
     "yamllint": "dist/main.mjs"
   },
-  "types": "./dist/index.d.mts",
+  "types": "./dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
-    ".": "./dist/index.mjs",
-    "./internal": "./dist/internal.mjs"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./internal": {
+      "types": "./dist/internal.d.ts",
+      "import": "./dist/internal.mjs",
+      "require": "./dist/internal.cjs"
+    }
   },
   "dependencies": {
     "iconv-lite": "^0.7.2",
