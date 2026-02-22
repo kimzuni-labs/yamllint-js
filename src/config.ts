@@ -401,8 +401,8 @@ interface LoadConfigFileOptions {
 export const loadConfigFile = (() => {
 	const jsReg = /\.[cm]?js$/;
 	const filenames = [
-		"package.json",
 		...getNodeSearchPlaces(COMMAND_NAMES),
+		"package.json",
 		...PY_YAMLLINT_CONFIG_FILES,
 	];
 
