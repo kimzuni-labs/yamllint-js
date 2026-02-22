@@ -219,7 +219,7 @@ export class YamlLintConfig {
 				if (props.content !== undefined) {
 					this.#data = yaml.parse(props.content, YAML_OPTIONS) as unknown;
 				} else {
-					this.#data = await loadConfigFile(props.file);
+					this.#data = await loadConfigFile(props.file).then(x => x.value);
 				}
 			} catch (e) {
 				throw new YamlLintConfigError(formatErrorMessage("invalid config: ", e));
@@ -388,6 +388,45 @@ interface LoadConfigFileOptions {
 }
 
 /**
+ * Find project YAML lint configuration filepath.
+ *
+ * @example
+ *
+ * ```typescript
+ * const configFilepath = await findProjectConfigFilepath({ startDir, stopDir });
+ * ```
+ */
+export const findProjectConfigFilepath = (() => {
+	const filenames = [
+		...YAMLLINT_JS_CONFIG_FILES,
+		"package.json",
+		...YAMLLINT_CONFIG_FILES,
+	];
+
+	return async function findProjectConfigFilepath(filepath?: LoadConfigFileOptions) {
+		const startDir = path.resolve(filepath?.startDir ?? process.cwd());
+		const stopDir = path.resolve(filepath?.stopDir ?? getHomedir());
+		let currDir = path.join(startDir, "xxx");
+
+		do {
+			currDir = path.dirname(currDir);
+			for (const filename of filenames) {
+				const curr = path.join(currDir, filename);
+				const isFile = await fs.stat(curr)
+					.then(x => x.isFile() || x.isSymbolicLink())
+					.catch(() => false);
+				if (isFile) {
+					return curr;
+				}
+			}
+		} while (
+			currDir !== stopDir
+			&& currDir !== path.dirname(currDir)
+		);
+	};
+})();
+
+/**
  * Load YAML lint configuration from a file.
  *
  * @example
@@ -400,11 +439,6 @@ interface LoadConfigFileOptions {
  */
 export const loadConfigFile = (() => {
 	const extPattern = /\.[cm]?[jt]s$/;
-	const filenames = [
-		...YAMLLINT_JS_CONFIG_FILES,
-		"package.json",
-		...YAMLLINT_CONFIG_FILES,
-	];
 
 	const loadFile = async (filepath: string) => {
 		try {
@@ -441,30 +475,20 @@ export const loadConfigFile = (() => {
 	};
 
 	return async function loadConfigFile(filepath?: string | LoadConfigFileOptions) {
+		let value;
 		if (typeof filepath === "string") {
-			return loadFile(filepath);
+			value = loadFile(filepath);
+		} else {
+			filepath = await findProjectConfigFilepath(filepath);
+			if (filepath) {
+				value = await loadFile(filepath);
+			}
 		}
 
-		const startDir = filepath?.startDir ?? process.cwd();
-		const stopDir = filepath?.stopDir === undefined ? getHomedir() : path.resolve(filepath.stopDir);
-		let currDir = path.resolve(startDir, "xxx");
-
-		do {
-			currDir = path.dirname(currDir);
-			for (const filename of filenames) {
-				const curr = path.join(currDir, filename);
-				const isFile = await fs.stat(curr)
-					.then(x => x.isFile() || x.isSymbolicLink())
-					.catch(() => false);
-				if (isFile) {
-					const content = await loadFile(curr);
-					if (content) return content;
-				}
-			}
-		} while (
-			currDir !== stopDir
-			&& currDir !== path.dirname(currDir)
-		);
+		return {
+			filepath,
+			value,
+		};
 	};
 })();
 
@@ -507,7 +531,7 @@ export async function loadYamlLintConfig(options?: LoadConfigFileOptions) {
 	let load;
 
 	let conf: YamlLintConfig;
-	if ((load = await loadConfigFile(options))) {
+	if ((load = await loadConfigFile(options).then(x => x.value))) {
 		conf = await YamlLintConfig.init({ _data: load });
 	} else if ((userGlobalConfig = await detectUserGlobalConfig())) {
 		conf = await YamlLintConfig.init({ file: userGlobalConfig });

@@ -36,6 +36,7 @@ export {
 	type YamlLintConfigProps,
 	YamlLintConfig,
 	YamlLintConfigError,
+	findProjectConfigFilepath,
 	loadConfigFile,
 	detectUserGlobalConfig,
 	loadYamlLintConfig,
