@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.4](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.3...v0.2.4) (2026-02-22)
+
+
+### 🐛 Bug Fixes
+
+* correct detect config file in stopDir ([f1b182c](https://github.com/kimzuni-labs/yamllint-js/commit/f1b182c7f646e8d8ab169e36984681d9a2e03109))
+* move package.json to after getNodeSearchPlaces ([f1b182c](https://github.com/kimzuni-labs/yamllint-js/commit/f1b182c7f646e8d8ab169e36984681d9a2e03109))
+
 ## [0.2.3](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.2...v0.2.3) (2026-02-19)
 
 
