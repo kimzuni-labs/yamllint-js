@@ -26,6 +26,7 @@ import { splitlines } from "../src/utils";
 import {
 	YamlLintConfig,
 	validateRuleConf,
+	loadConfigFile,
 } from "../src/config";
 
 import {
@@ -40,6 +41,39 @@ import {
 
 
 const newConf = (...strings: string[]) => YamlLintConfig.init({ content: strings.join("\n") });
+
+
+
+describe("Load Config File Test Case", () => {
+	let dirname: BuildTempWorkspaceReturnType["dirname"];
+	let cleanup: BuildTempWorkspaceReturnType["cleanup"] = async () => {
+		// pass
+	};
+	afterAll(() => cleanup());
+	beforeAll(async () => {
+		const temp = await buildTempWorkspace({
+			".yamllint": "extends: relaxed",
+		});
+		dirname = temp.dirname;
+		cleanup = temp.cleanup;
+	});
+
+	describe("should find config file", () => {
+		test("stopDir is same as startDir", async () => {
+			await expect(loadConfigFile({
+				startDir: dirname,
+				stopDir: dirname,
+			})).resolves.toBeDefined();
+		});
+
+		test("stopDir is parent of startDir, and saved config file in startDir", async () => {
+			await expect(loadConfigFile({
+				startDir: `${dirname}/xxx`,
+				stopDir: dirname,
+			})).resolves.toBeDefined();
+		});
+	});
+});
 
 
 

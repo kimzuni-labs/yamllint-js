@@ -401,8 +401,8 @@ interface LoadConfigFileOptions {
 export const loadConfigFile = (() => {
 	const jsReg = /\.[cm]?js$/;
 	const filenames = [
-		"package.json",
 		...getNodeSearchPlaces(COMMAND_NAMES),
+		"package.json",
 		...PY_YAMLLINT_CONFIG_FILES,
 	];
 
@@ -451,9 +451,10 @@ export const loadConfigFile = (() => {
 
 		const startDir = filepath?.startDir ?? process.cwd();
 		const stopDir = filepath?.stopDir === undefined ? getHomedir() : path.resolve(filepath.stopDir);
-		let currDir = path.resolve(startDir);
+		let currDir = path.resolve(startDir, "xxx");
 
 		do {
+			currDir = path.dirname(currDir);
 			for (const filename of filenames) {
 				const curr = path.join(currDir, filename);
 				const isFile = await fs.stat(curr)
@@ -464,7 +465,6 @@ export const loadConfigFile = (() => {
 					if (content) return content;
 				}
 			}
-			currDir = path.dirname(currDir);
 		} while (
 			currDir !== stopDir
 			&& currDir !== path.dirname(currDir)
