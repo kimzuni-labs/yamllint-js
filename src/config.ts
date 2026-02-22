@@ -406,7 +406,7 @@ export const loadConfigFile = (() => {
 		...YAMLLINT_CONFIG_FILES,
 	];
 
-	const loadFile = async (filepath: string, throwOnFailure = false) => {
+	const loadFile = async (filepath: string) => {
 		try {
 			filepath = path.resolve(filepath);
 			const filename = path.basename(filepath);
@@ -429,22 +429,20 @@ export const loadConfigFile = (() => {
 
 				// @ts-expect-error: ts(7053)
 				const value = pkg[APP.NAME] as unknown;
-				if (value) return value;
+				return value ?? undefined;
 			} else {
 				const content = decoder.autoDecode(await fs.readFile(filepath));
 				return yaml.parse(content, YAML_OPTIONS) as unknown;
 			}
 			throw new Error();
 		} catch {
-			if (throwOnFailure) {
-				throw new YamlLintConfigError(`failed to load config file "${filepath}"`);
-			}
+			throw new YamlLintConfigError(`failed to load config file "${filepath}"`);
 		}
 	};
 
 	return async function loadConfigFile(filepath?: string | LoadConfigFileOptions) {
 		if (typeof filepath === "string") {
-			return loadFile(filepath, true);
+			return loadFile(filepath);
 		}
 
 		const startDir = filepath?.startDir ?? process.cwd();

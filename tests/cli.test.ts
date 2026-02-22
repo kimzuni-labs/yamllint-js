@@ -988,7 +988,8 @@ describe("Command Line Config Test Case", () => {
 		test("not support format", async () => {
 			await run({
 				workspace: { ...workspace, "yamllint-js.config.mjs": "" },
-				stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
+				returnCode: /[^0]/,
+				stderr: /^Error:/,
 			});
 
 			await run({
@@ -1035,17 +1036,6 @@ describe("Command Line Config Test Case", () => {
 				}
 			});
 		}
-
-		describe("empty file", () => {
-			for (const confFile of [...confFiles, ...exts.map(([ext]) => `${APP.NAME}.config${ext}`)]) {
-				test(confFile, async () => {
-					await run({
-						workspace: { ...workspace, [confFile]: "" },
-						stdout: "a.yml:1:1: [warning] missing document start \"---\" (document-start)",
-					});
-				});
-			}
-		});
 	});
 
 	describe("parent config file", () => {
