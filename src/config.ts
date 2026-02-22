@@ -399,7 +399,7 @@ interface LoadConfigFileOptions {
  * ```
  */
 export const loadConfigFile = (() => {
-	const jsReg = /\.[cm]?js$/;
+	const extPattern = /\.[cm]?[jt]s$/;
 	const filenames = [
 		...YAMLLINT_JS_CONFIG_FILES,
 		"package.json",
@@ -410,7 +410,7 @@ export const loadConfigFile = (() => {
 		try {
 			filepath = path.resolve(filepath);
 			const filename = path.basename(filepath);
-			if (jsReg.test(filepath) || filepath.endsWith(".ts")) {
+			if (extPattern.test(filepath)) {
 				const jiti = createJiti(import.meta.url);
 				const size = await fs.stat(filepath).then(x => x.size).catch(() => 0);
 				if (size > 0) {

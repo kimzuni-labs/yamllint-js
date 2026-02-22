@@ -976,11 +976,6 @@ describe("Command Line Config Test Case", () => {
 				"  extends: 'relaxed'",
 				"};",
 			],
-			ts: [
-				"export default {",
-				"  extends: 'relaxed'",
-				"};",
-			],
 		};
 
 		test("no config file", async () => {
@@ -1023,9 +1018,11 @@ describe("Command Line Config Test Case", () => {
 
 		const exts = [
 			[".js", [confs.cjs, confs.esm]],
-			[".ts", [confs.ts]],
 			[".cjs", [confs.cjs]],
 			[".mjs", [confs.esm]],
+			[".ts", [confs.esm]],
+			[".cts", [confs.esm]],
+			[".mts", [confs.esm]],
 		] satisfies Array<[string, string[][]]>;
 
 		for (const [ext, data] of exts) {

@@ -37,9 +37,11 @@ export const APP = {
  */
 export const YAMLLINT_JS_CONFIG_FILES = [
 	`${APP.NAME}.config.js`,
-	`${APP.NAME}.config.ts`,
-	`${APP.NAME}.config.cjs`,
 	`${APP.NAME}.config.mjs`,
+	`${APP.NAME}.config.cjs`,
+	`${APP.NAME}.config.ts`,
+	`${APP.NAME}.config.mts`,
+	`${APP.NAME}.config.cts`,
 ];
 
 /**
