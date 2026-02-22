@@ -25,8 +25,8 @@ import ignore, { type Ignore } from "ignore";
 import { createJiti } from "jiti";
 
 import type { Prettify, BuiltInExtendName, RuleConf, Rule, RuleId, AllLevel, Level, Alias, ToCamelCaseKeys, MaybeCamelCaseKeys } from "./types";
-import { COMMAND_NAMES, LEVELS, ALIASES, PY_YAMLLINT_CONFIG_FILES, YAML_OPTIONS } from "./constants";
-import { splitlines, getHomedir, formatErrorMessage, toKebabCaseKeys, getNodeSearchPlaces } from "./utils";
+import { APP, LEVELS, ALIASES, YAMLLINT_JS_CONFIG_FILES, YAMLLINT_CONFIG_FILES, YAML_OPTIONS } from "./constants";
+import { splitlines, getHomedir, formatErrorMessage, toKebabCaseKeys } from "./utils";
 import * as yamllintRules from "./rules";
 import * as decoder from "./decoder";
 
@@ -401,9 +401,9 @@ interface LoadConfigFileOptions {
 export const loadConfigFile = (() => {
 	const jsReg = /\.[cm]?js$/;
 	const filenames = [
-		...getNodeSearchPlaces(COMMAND_NAMES),
+		...YAMLLINT_JS_CONFIG_FILES,
 		"package.json",
-		...PY_YAMLLINT_CONFIG_FILES,
+		...YAMLLINT_CONFIG_FILES,
 	];
 
 	const loadFile = async (filepath: string, throwOnFailure = false) => {
@@ -427,11 +427,9 @@ export const loadConfigFile = (() => {
 				const pkg = JSON.parse(content) as unknown;
 				if (typeof pkg !== "object" || pkg === null) return;
 
-				for (const name of COMMAND_NAMES) {
-					// @ts-expect-error: ts(7053)
-					const value = pkg[name] as unknown;
-					if (value) return value;
-				}
+				// @ts-expect-error: ts(7053)
+				const value = pkg[APP.NAME] as unknown;
+				if (value) return value;
 			} else {
 				const content = decoder.autoDecode(await fs.readFile(filepath));
 				return yaml.parse(content, YAML_OPTIONS) as unknown;

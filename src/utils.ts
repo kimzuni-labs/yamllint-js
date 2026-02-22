@@ -145,38 +145,3 @@ export const toKebabCaseKeys = (data: Record<string, unknown>) => {
 	}
 	return newData;
 };
-
-/**
- * Get search place files, but not include package.json and rc files
- *
- * @example
- *
- * ```typescript
- * getSearchPlaces("yamllint-js")
- * // Set(4) {
- * //   "yamllint-js.config.js",
- * //   "yamllint-js.config.ts",
- * //   "yamllint-js.config.cjs",
- * //   "yamllint-js.config.mjs",
- * // }
- *
- * getSearchPlaces("yamllint-js", new Set("package.json"))
- * // Set(5) {
- * //   "package.json"
- * //   "yamllint-js.config.js",
- * //   "yamllint-js.config.ts",
- * //   "yamllint-js.config.cjs",
- * //   "yamllint-js.config.mjs",
- * // }
- * ```
- */
-export const getNodeSearchPlaces = (name: string | string[], set: Set<string> = new Set()) => {
-	const names = Array.isArray(name) ? name : [name];
-	for (const n of names) {
-		set.add(`${n}.config.js`);
-		set.add(`${n}.config.ts`);
-		set.add(`${n}.config.cjs`);
-		set.add(`${n}.config.mjs`);
-	}
-	return set;
-};

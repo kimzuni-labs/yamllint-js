@@ -51,7 +51,7 @@ export const detectEncoding = (() => {
 		console.warn(
 			"YAMLLINT_FILE_ENCODING is meant for temporary",
 			"workarounds. It may be removed in a future version of",
-			"yamllint.",
+			"yamllint-js.",
 		);
 	});
 

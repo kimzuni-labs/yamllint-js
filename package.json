@@ -43,8 +43,7 @@
     "port"
   ],
   "bin": {
-    "yamllint-js": "dist/main.mjs",
-    "yamllint": "dist/main.mjs"
+    "yamllint-js": "dist/main.mjs"
   },
   "types": "./dist/index.d.mts",
   "exports": {

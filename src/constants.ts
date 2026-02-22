@@ -21,11 +21,6 @@ import pkg from "../package.json";
 
 
 
-/**
- * Command names with aliases
- */
-export const COMMAND_NAMES = Object.keys(pkg.bin);
-
 export const APP = {
 	NAME: pkg.name,
 	VERSION: pkg.version,
@@ -37,7 +32,20 @@ export const APP = {
 	].join(" "),
 };
 
-export const PY_YAMLLINT_CONFIG_FILES = [
+/**
+ * yamllint-js config files
+ */
+export const YAMLLINT_JS_CONFIG_FILES = [
+	`${APP.NAME}.config.js`,
+	`${APP.NAME}.config.ts`,
+	`${APP.NAME}.config.cjs`,
+	`${APP.NAME}.config.mjs`,
+];
+
+/**
+ * Python yamllint config files
+ */
+export const YAMLLINT_CONFIG_FILES = [
 	".yamllint",
 	".yamllint.yaml",
 	".yamllint.yml",

@@ -24,7 +24,7 @@ import path from "node:path";
 import os from "node:os";
 import glob from "fast-glob";
 
-import { COMMAND_NAMES, APP } from "../src/constants";
+import { APP } from "../src/constants";
 import * as cli from "../src/cli";
 import { YamlLintConfig } from "../src/config";
 import { splitlines } from "../src/utils";
@@ -959,16 +959,13 @@ describe("Command Line Config Test Case", () => {
 				"extends: relaxed",
 				"",
 			],
-			package: COMMAND_NAMES.map(x => [
-				x,
-				[
-					"{",
-					`  "${x}": {`,
-					"    \"extends\": \"relaxed\"",
-					"  }",
-					"}",
-				],
-			] satisfies [command: string, conf: string[]]),
+			package: [
+				"{",
+				`  "${APP.NAME}": {`,
+				"    \"extends\": \"relaxed\"",
+				"  }",
+				"}",
+			],
 			cjs: [
 				"module.exports = {",
 				"  extends: 'relaxed'",
@@ -1017,70 +1014,33 @@ describe("Command Line Config Test Case", () => {
 			}
 		});
 
-		describe("package.json", () => {
+		test("package.json", async () => {
 			const confFile = "package.json";
+			await run({
+				workspace: { ...workspace, [confFile]: confs.package },
+			});
+		});
 
-			for (const [key, conf] of confs.package) {
-				test(key, async () => {
+		const exts = [
+			[".js", [confs.cjs, confs.esm]],
+			[".ts", [confs.ts]],
+			[".cjs", [confs.cjs]],
+			[".mjs", [confs.esm]],
+		] satisfies Array<[string, string[][]]>;
+
+		for (const [ext, data] of exts) {
+			test(ext, async () => {
+				const confFile = `${APP.NAME}.config${ext}`;
+				for (const conf of data) {
 					await run({
 						workspace: { ...workspace, [confFile]: conf },
 					});
-				});
-			}
-		});
-
-		describe(".js", () => {
-			const confFiles = COMMAND_NAMES.map(x => `${x}.config.js`);
-
-			for (const confFile of confFiles) {
-				for (const conf of [confs.cjs, confs.esm]) {
-					test(confFile, async () => {
-						await run({
-							workspace: { ...workspace, [confFile]: conf },
-						});
-					});
 				}
-			}
-		});
-
-		describe(".cjs", () => {
-			const confFiles = COMMAND_NAMES.map(x => `${x}.config.cjs`);
-
-			for (const confFile of confFiles) {
-				test(confFile, async () => {
-					await run({
-						workspace: { ...workspace, [confFile]: confs.cjs },
-					});
-				});
-			}
-		});
-
-		describe(".esm", () => {
-			const confFiles = COMMAND_NAMES.map(x => `${x}.config.mjs`);
-
-			for (const confFile of confFiles) {
-				test(confFile, async () => {
-					await run({
-						workspace: { ...workspace, [confFile]: confs.esm },
-					});
-				});
-			}
-		});
-
-		describe(".ts", () => {
-			const confFiles = COMMAND_NAMES.map(x => `${x}.config.ts`);
-
-			for (const confFile of confFiles) {
-				test(confFile, async () => {
-					await run({
-						workspace: { ...workspace, [confFile]: confs.esm },
-					});
-				});
-			}
-		});
+			});
+		}
 
 		describe("empty file", () => {
-			for (const confFile of [...confFiles, "yamllint-js.config.js", "yamllint-js.config.ts"]) {
+			for (const confFile of [...confFiles, ...exts.map(([ext]) => `${APP.NAME}.config${ext}`)]) {
 				test(confFile, async () => {
 					await run({
 						workspace: { ...workspace, [confFile]: "" },
