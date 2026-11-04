@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.4...v0.2.5) (2026-11-04)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update recheck to resolve missing default export syntax error ([d0e5bf4](https://github.com/kimzuni-labs/yamllint-js/commit/d0e5bf4525ccfd0d0b93b8783769db82df7de518))
+
 ## [0.2.4](https://github.com/kimzuni-labs/yamllint-js/compare/v0.2.3...v0.2.4) (2026-02-22)
 
 
