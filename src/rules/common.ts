@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import recheck from "recheck";
+import * as recheck from "recheck";
 
 import type { Token } from "../parser";
 import { LintProblem } from "../linter";
